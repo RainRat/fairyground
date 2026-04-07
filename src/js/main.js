@@ -5867,10 +5867,67 @@ function squareGetCoords(square) {
   if (square.length < 2) return [-1, -1];
   const coords = [-1, -1];
   coords[0] = parseInt(square.substring(1)) - 1;
-  if (coords[0] === NaN || coords[0] < 0 || coords[0] >= 1000) return [-1, -1];
+  if (Number.isNaN(coords[0]) || coords[0] < 0 || coords[0] >= 1000)
+    return [-1, -1];
   coords[1] = square.charCodeAt(0) - "a".charCodeAt(0);
-  if (coords[1] === NaN || coords[1] < 0 || coords[1] >= 26) return [-1, -1];
+  if (Number.isNaN(coords[1]) || coords[1] < 0 || coords[1] >= 26)
+    return [-1, -1];
   return coords;
+}
+
+function extractMoveSquares(move) {
+  if (typeof move != "string") {
+    return [];
+  }
+  const baseMove = move.trim().split(",")[0];
+  return baseMove.match(/[a-z]+[0-9]+/g) ?? [];
+}
+
+function getPieceAtSquare(board, square) {
+  const coords = squareGetCoords(square);
+  if (coords[0] < 0 || coords[1] < 0) {
+    return "";
+  }
+  const pieces = getPiecesAsArray(board);
+  return pieces[coords[0]]?.[coords[1]] ?? "";
+}
+
+function normalizeCastlingDragMove(board, move, legalmoves) {
+  const moves = Array.isArray(legalmoves) ? legalmoves : [];
+  const [orig, dest] = extractMoveSquares(move);
+  if (!orig || !dest) {
+    return null;
+  }
+  const mover = getPieceAtSquare(board, orig);
+  const rook = getPieceAtSquare(board, dest);
+  if (!/[kK]/.test(mover) || !/[rR]/.test(rook) || mover === rook) {
+    return null;
+  }
+
+  const [origRank, origFile] = squareGetCoords(orig);
+  const [destRank, destFile] = squareGetCoords(dest);
+  if (origRank !== destRank) {
+    return null;
+  }
+  const dragDirection = Math.sign(destFile - origFile);
+  if (dragDirection === 0) {
+    return null;
+  }
+
+  const candidates = moves.filter((legal) => {
+    const [legalOrig, legalDest] = extractMoveSquares(legal);
+    if (!legalOrig || !legalDest || legalOrig !== orig) {
+      return false;
+    }
+    const [legalRank, legalFile] = squareGetCoords(legalDest);
+    if (legalRank !== origRank) {
+      return false;
+    }
+    const legalDirection = Math.sign(legalFile - origFile);
+    return legalDirection === dragDirection && Math.abs(legalFile - origFile) > 1;
+  });
+
+  return candidates.length === 1 ? candidates[0] : null;
 }
 
 function isCapture(board, move) {
@@ -6087,7 +6144,7 @@ function afterChessgroundMove(orig, dest, metadata) {
     if (foundmove) {
       finalmove = foundmove[0];
     } else {
-      finalmove = null;
+      finalmove = normalizeCastlingDragMove(board, move, legalmoves);
     }
   }
 
