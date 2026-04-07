@@ -4933,7 +4933,14 @@ new Module().then((loadedModule) => {
         bestpv = 0;
       }
       bestmove = textparselist[1];
-      if (textparselist[3] != undefined && textparselist[3] != "0000") {
+      if (bestmove == "(none)") {
+        bestmove = "";
+      }
+      if (
+        textparselist[3] != undefined &&
+        textparselist[3] != "0000" &&
+        textparselist[3] != "(none)"
+      ) {
         ponder = textparselist[3];
       }
       multipvrecord[bestpv][2] = bestmove;

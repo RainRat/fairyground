@@ -1231,9 +1231,11 @@ class Engine {
               window.alert(
                 `${this.Name} (${this.Color}) has claimed a ${bestmoveline[1]}.`,
               );
+            } else if (bestmoveline[1] == "(none)") {
+              this.Move = "0000";
             } else {
               this.SetMoveInUCIFormat(bestmoveline[1]);
-              if (this.Move == undefined) {
+              if (this.Move == undefined || this.Move == null) {
                 this.Move = "0000";
               }
             }
@@ -1242,7 +1244,11 @@ class Engine {
             } else {
               this.SetPonderMoveInUCIFormat(bestmoveline[3]);
             }
-            if (this.PonderMove == undefined) {
+            if (
+              this.PonderMove == undefined ||
+              this.PonderMove == null ||
+              this.PonderMove == "(none)"
+            ) {
               this.PonderMove = "0000";
             }
             console.log(
@@ -1306,6 +1312,9 @@ class Engine {
           } else {
             ponder = msglist[3];
           }
+          if (bestmove == "(none)") {
+            bestmove = "0000";
+          }
           if (this.Protocol == "USI") {
             bestmove = convertUSImovestoUCImoves(
               bestmove,
@@ -1322,7 +1331,7 @@ class Engine {
               GetBoardHeight(),
             );
           }
-          if (ponder) {
+          if (ponder && ponder != "(none)") {
             if (this.Protocol == "USI") {
               ponder = convertUSImovestoUCImoves(
                 ponder,
