@@ -4572,6 +4572,63 @@
         setVariantStylesheet(variant);
       };
 
+      const syncDerivedPositionState = () => {
+        const gamestatus = document.getElementById("gamestatus");
+        const stm = document.getElementById("label-stm");
+        const variant = document.getElementById("dropdown-variant").value;
+        const fen = document.getElementById("fen").value.trim();
+        const moves = document.getElementById("move").value.trim();
+
+        if (!window.ffishlib || variant.length == 0) {
+          stm.innerText = "undefined";
+          if (!during_play) {
+            gamestatus.innerText = "END";
+          }
+          return false;
+        }
+
+        let tmpboard = null;
+        try {
+          tmpboard = new window.ffishlib.Board(
+            variant,
+            fen.length > 0 ? fen : window.ffishlib.startingFen(variant),
+            fischer_random_mode,
+          );
+          if (moves.length > 0 && !tmpboard.pushMoves(moves)) {
+            tmpboard.delete();
+            stm.innerText = "undefined";
+            if (!during_play) {
+              gamestatus.innerText = "END";
+            }
+            return false;
+          }
+
+          stm.innerText = tmpboard.turn() ? "white" : "black";
+          if (
+            tmpboard.isGameOver() ||
+            tmpboard.isGameOver(true) ||
+            tmpboard.isGameOver(false)
+          ) {
+            gamestatus.innerText = "END";
+          } else {
+            gamestatus.innerText =
+              tmpboard.turn() ? "PLAYING_WHITE" : "PLAYING_BLACK";
+          }
+          tmpboard.delete();
+          return true;
+        } catch (err) {
+          if (tmpboard) {
+            tmpboard.delete();
+          }
+          console.warn("Failed to sync derived position state:", err);
+          stm.innerText = "undefined";
+          if (!during_play) {
+            gamestatus.innerText = "END";
+          }
+          return false;
+        }
+      };
+
       const setFen = (
         interrupt_ponder,
         automatically_start_engine_thinking,
@@ -4595,6 +4652,7 @@
         } else {
           stockfish.postMessage(`position startpos moves ${moves}`);
         }
+        syncDerivedPositionState();
         const stm = $("#label-stm").innerText;
         if (fge.WebSocketStatus == "CONNECTED") {
           if (fge.analysis_engine) {
@@ -5524,6 +5582,7 @@
         if (!during_play) {
           return;
         }
+        syncDerivedPositionState();
         move_finish_timer_updating = true;
         const stm = document.getElementById("label-stm").innerText;
         console.log(`${$("#gamestatus").innerText}`);
@@ -5658,6 +5717,7 @@
       }
 
       function updateTimer() {
+        syncDerivedPositionState();
         const gamestatus = document.getElementById("gamestatus");
         if (gamestatus.innerText == "END") {
           deleteTimer();
@@ -5862,7 +5922,8 @@
       };
 
       const goWithTimeControl = () => {
-        if ($("#gamestatus").innerText != "END") {
+        syncDerivedPositionState();
+        if (during_play || $("#gamestatus").innerText == "END") {
           return;
         }
         //We need to prevent user from doing unnecessary actions during countdown, so we'll hide these divs
