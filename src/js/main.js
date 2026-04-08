@@ -6285,7 +6285,9 @@ function afterMove(move, capture) {
   if (getGameStatus(false) == "END") {
     soundTerminal.currentTime = 0.0;
     soundTerminal.play();
-  } else if (board.isCheck()) {
+  } else if (
+    typeof board.isRealCheck === "function" ? board.isRealCheck() : board.isCheck()
+  ) {
     soundCheck.currentTime = 0.0;
     soundCheck.play();
   }
@@ -6634,7 +6636,10 @@ function pieceDisplayedInPocketOfFEN(fen, pieceid) {
 }
 
 function getCheckSquares(board) {
-  let checks = board.checkedPieces();
+  let checks =
+    typeof board.evasionCheckedPieces === "function"
+      ? board.evasionCheckedPieces()
+      : board.checkedPieces();
   if (checks == "") {
     return [];
   }
