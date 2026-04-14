@@ -4532,33 +4532,47 @@
         play_move = false;
         stop(true);
         const variant = $("#dropdown-variant").value;
+        const effectiveVariant = variant === "" ? "chess" : variant;
         stockfish.postMessage(`ucinewgame`);
-        if (variant == "") {
-          stockfish.postMessage(`setoption name UCI_Variant value chess`);
-        } else {
-          stockfish.postMessage(`setoption name UCI_Variant value ${variant}`);
-        }
+        stockfish.postMessage(
+          `setoption name UCI_Variant value ${effectiveVariant}`,
+        );
         stockfish.postMessage(
           `setoption name UCI_Chess960 value ${fischer_random_mode}`,
         );
         stockfish.postMessage(`position startpos`);
         if (fge.WebSocketStatus == "CONNECTED") {
           if (fge.first_engine) {
-            if (fge.first_engine.SetVariant(variant, fischer_random_mode)) {
+            if (
+              fge.first_engine.SetVariant(
+                effectiveVariant,
+                fischer_random_mode,
+              )
+            ) {
               document.getElementById("whiteunsupportedvariant").hidden = true;
             } else {
               document.getElementById("whiteunsupportedvariant").hidden = false;
             }
           }
           if (fge.second_engine) {
-            if (fge.second_engine.SetVariant(variant, fischer_random_mode)) {
+            if (
+              fge.second_engine.SetVariant(
+                effectiveVariant,
+                fischer_random_mode,
+              )
+            ) {
               document.getElementById("blackunsupportedvariant").hidden = true;
             } else {
               document.getElementById("blackunsupportedvariant").hidden = false;
             }
           }
           if (fge.analysis_engine) {
-            if (fge.analysis_engine.SetVariant(variant, fischer_random_mode)) {
+            if (
+              fge.analysis_engine.SetVariant(
+                effectiveVariant,
+                fischer_random_mode,
+              )
+            ) {
               document.getElementById("analysisunsupportedvariant").hidden =
                 true;
             } else {
@@ -4569,17 +4583,25 @@
         }
         resetTimer();
 
-        setVariantStylesheet(variant);
+        setVariantStylesheet(effectiveVariant);
       };
 
       const syncDerivedPositionState = () => {
         const gamestatus = document.getElementById("gamestatus");
         const stm = document.getElementById("label-stm");
-        const variant = document.getElementById("dropdown-variant").value;
+        const variant =
+          document.getElementById("dropdown-variant").value || "chess";
         const fen = document.getElementById("fen").value.trim();
         const moves = document.getElementById("move").value.trim();
+        const currentBoardFenText =
+          document.getElementById("currentboardfen")?.textContent || "";
+        const currentBoardFenPrefix = "Current Board FEN:";
+        const currentBoardFen = currentBoardFenText
+          .startsWith(currentBoardFenPrefix)
+          ? currentBoardFenText.slice(currentBoardFenPrefix.length).trim()
+          : "";
 
-        if (!window.ffishlib || variant.length == 0) {
+        if (!window.ffishlib) {
           stm.innerText = "undefined";
           if (!during_play) {
             gamestatus.innerText = "END";
@@ -4591,10 +4613,18 @@
         try {
           tmpboard = new window.ffishlib.Board(
             variant,
-            fen.length > 0 ? fen : window.ffishlib.startingFen(variant),
+            currentBoardFen.length > 0
+              ? currentBoardFen
+              : fen.length > 0
+                ? fen
+                : window.ffishlib.startingFen(variant),
             fischer_random_mode,
           );
-          if (moves.length > 0 && !tmpboard.pushMoves(moves)) {
+          if (
+            currentBoardFen.length == 0 &&
+            moves.length > 0 &&
+            !tmpboard.pushMoves(moves)
+          ) {
             tmpboard.delete();
             stm.innerText = "undefined";
             if (!during_play) {
@@ -4831,7 +4861,7 @@
             (play_black && stm == "black") ||
             analysis_mode)
         ) {
-          setTimeout(go(false, false), 10);
+          setTimeout(() => go(false, false), 10);
         } else if (automatically_start_engine_thinking) {
           if (fge.first_engine) {
             if (
@@ -4840,7 +4870,7 @@
               stm != "undefined" &&
               play_white
             ) {
-              setTimeout(go(true, false), 10);
+              setTimeout(() => go(true, false), 10);
             }
           }
           if (fge.second_engine) {
@@ -4850,7 +4880,7 @@
               stm != "undefined" &&
               play_black
             ) {
-              setTimeout(go(false, true), 10);
+              setTimeout(() => go(false, true), 10);
             }
           }
           if (
@@ -6423,6 +6453,13 @@
               window.stockfish = _stockfish;
               stockfish_state = "READY";
               stockfish.addMessageListener((line) => {
+                if (typeof line !== "string") {
+                  console.warn(
+                    "Ignoring non-string browser-engine message:",
+                    line,
+                  );
+                  return;
+                }
                 if (line.startsWith("option")) {
                   if (line.startsWith("option name UCI_Variant")) {
                     allvariants = line

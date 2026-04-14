@@ -3825,7 +3825,14 @@ new Module().then((loadedModule) => {
     if (selected) {
       selected.text().then(function (ini) {
         console.log(ini);
-        ffish.loadVariantConfig(ini);
+        try {
+          ffish.loadVariantConfig(ini);
+        } catch (err) {
+          console.error("Failed to load local variants.ini into ffish:", err);
+          window.alert(
+            "Failed to load variants.ini into the browser helper. Built-in variants should still work; check the console for the parse error.",
+          );
+        }
       });
     }
   };

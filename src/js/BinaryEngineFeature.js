@@ -497,7 +497,8 @@ const LineFeedCarriageReturnMatcher = new RegExp("(\r\n)|(\r)", "g");
 const BoardDimensionMatcher = new RegExp("board[0-9]+x[0-9]+", "");
 
 function GetCurrentVariantID() {
-  return document.getElementById("dropdown-variant").value;
+  const variant = document.getElementById("dropdown-variant").value;
+  return variant === "" ? "chess" : variant;
 }
 
 window.fairyground.BinaryEngineFeature.GetCurrentVariantID =
@@ -1027,6 +1028,8 @@ class Engine {
     this.MoveRightCount = 0;
     this.LoadTimeOut = LoadTimeOut;
     this.SupportsFischerRandom = false;
+    this.PendingVariantPathRedetect = null;
+    this.RedetectedVariantPath = null;
     this.LoadFinishCallBack = undefined;
     this.LoadFailureCallBack = undefined;
     this.IsReadyCallBack = undefined;
@@ -1274,6 +1277,10 @@ class Engine {
           }
         }
       } else if (Message.includes("readyok")) {
+        if (this.PendingVariantPathRedetect != null) {
+          this.BeginOptionRedetectPreservingCallbacks();
+          return;
+        }
         if (typeof this.IsReadyCallBack == "function") {
           this.IsReadyCallBack();
         }
@@ -1365,6 +1372,10 @@ class Engine {
         this.SetOptions(this.Options);
         this.MessageBuffer = [];
       } else if (Message.includes("readyok")) {
+        if (this.PendingVariantPathRedetect != null) {
+          this.BeginOptionRedetectPreservingCallbacks();
+          return;
+        }
         this.WebSocketConnection.send(
           `ENGINE_READY\x10${this.ID}\x10${this.Color}`,
         );
@@ -1619,16 +1630,48 @@ class Engine {
     if (!Array.isArray(OptionList)) {
       throw TypeError();
     }
+    let variantPath = null;
     OptionList.forEach((val) => {
       if (IsNullValue(val.current)) {
         return;
+      }
+      if (/^VariantPath$/i.test(val.name) && val.current != "<empty>") {
+        variantPath = val.current;
       }
       if (/^protocol$|^(UCI_|USI_|UCCI_)variant$|^variant$/i.test(val.name)) {
         return;
       }
       this.SetOption(val.name, val.current);
     });
+    if (variantPath == null) {
+      this.RedetectedVariantPath = null;
+      this.PendingVariantPathRedetect = null;
+    } else if (variantPath != this.RedetectedVariantPath) {
+      this.PendingVariantPathRedetect = variantPath;
+    } else {
+      this.PendingVariantPathRedetect = null;
+    }
     this.PostMessage(`isready`);
+  }
+
+  BeginOptionRedetectPreservingCallbacks() {
+    this.DataStream = "";
+    this.Variants = [];
+    this.Ponder = false;
+    this.PonderMiss = false;
+    this.PonderMove = "0000";
+    this.Move = "0000";
+    this.IsLoaded = false;
+    this.IsLoading = true;
+    this.RedetectedVariantPath = this.PendingVariantPathRedetect;
+    this.PendingVariantPathRedetect = null;
+    if (this.Protocol == "UCI" || this.Protocol == "UCI_CYCLONE") {
+      this.PostMessage("uci");
+    } else if (this.Protocol == "USI") {
+      this.PostMessage("usi");
+    } else if (this.Protocol == "UCCI") {
+      this.PostMessage("ucci");
+    }
   }
 
   SaveOptionsToEngineList(EngineList) {
