@@ -3797,6 +3797,13 @@ new Module().then((loadedModule) => {
   ffish = loadedModule;
   console.log("ffish.js initialized!");
   window.ffishlib = loadedModule; //Used in dev tools for debugging purposes and transfer to <script>
+  document.dispatchEvent(
+    new CustomEvent("ffish:ready", {
+      detail: {
+        variants: loadedModule.variants().split(" ").sort(),
+      },
+    }),
+  );
 
   const splitVariantConfigSections = (ini) => {
     const normalized = ini.replace(/\r\n?/g, "\n");

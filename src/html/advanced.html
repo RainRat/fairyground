@@ -2922,6 +2922,8 @@
         );
       }
       if (themesloaded && positionvariantsloaded && variantsettingsloaded) {
+        seedVariantsFromVariantSettings();
+        syncVariantsFromFfish();
         document
           .getElementById("updatevarianttypedropdown")
           .dispatchEvent(new Event("click"));
@@ -3190,6 +3192,8 @@
     document.addEventListener("positionvariantsloaded", () => {
       positionvariantsloaded = true;
       if (pageloaded && themesloaded && variantsettingsloaded) {
+        seedVariantsFromVariantSettings();
+        syncVariantsFromFfish();
         document
           .getElementById("updatevarianttypedropdown")
           .dispatchEvent(new Event("click"));
@@ -3206,6 +3210,8 @@
     document.addEventListener("themesloaded", () => {
       themesloaded = true;
       if (pageloaded && positionvariantsloaded && variantsettingsloaded) {
+        seedVariantsFromVariantSettings();
+        syncVariantsFromFfish();
         document
           .getElementById("updatevarianttypedropdown")
           .dispatchEvent(new Event("click"));
@@ -3221,7 +3227,10 @@
 
     document.addEventListener("variantsettingsloaded", () => {
       variantsettingsloaded = true;
+      seedVariantsFromVariantSettings();
       if (pageloaded && positionvariantsloaded && themesloaded) {
+        seedVariantsFromVariantSettings();
+        syncVariantsFromFfish();
         document
           .getElementById("updatevarianttypedropdown")
           .dispatchEvent(new Event("click"));
@@ -3405,7 +3414,16 @@
           "getFileFromServer(url:string, doneCallback:function(string), errorCallback:function(Error) | undefined)",
         );
       }
-      fetch(url)
+      let resolvedUrl = url;
+      if (!/^(?:[a-z]+:)?\/\//i.test(url) && !url.startsWith("data:")) {
+        const trimmed = url.replace(/^\.\//, "").replace(/^\/+/, "");
+        const basePath = window.location.pathname.startsWith("/public/")
+          ? "/public/"
+          : "/";
+        resolvedUrl = new URL(trimmed, `${window.location.origin}${basePath}`)
+          .toString();
+      }
+      fetch(resolvedUrl)
         .then((response) => {
           if (!response.ok) {
             throw new Error(
@@ -3419,7 +3437,7 @@
         })
         .catch((error) => {
           console.error(
-            `There has been a problem when fetching "${url}":`,
+            `There has been a problem when fetching "${resolvedUrl}":`,
             error,
           );
           if (typeof errorCallback == "function") {
@@ -3600,6 +3618,7 @@
             `Bad data type from variantsettings.txt: ${typeof data}`,
           );
         }
+        m.redraw();
         if (dispatchevent) {
           document.dispatchEvent(new Event("variantsettingsloaded"));
         }
@@ -6230,8 +6249,10 @@
       };
 
       const updateVariantDropdown = () => {
+        if (allvariants.length == 0) {
+          syncVariantsFromFfish();
+        }
         const varianttypedropdown = $("#dropdown-varianttype");
-        const variantdropdown = $("#dropdown-variant");
         const selectedtype =
           varianttypedropdown[varianttypedropdown.selectedIndex].value;
         if (selectedtype == "") {
@@ -6253,32 +6274,15 @@
           });
           variants = tmpvariants;
         }
-        while (variantdropdown.children.length > 0) {
-          variantdropdown.removeChild(variantdropdown[0]);
-        }
-        variants.forEach((val) => {
-          let option = document.createElement("option");
-          let name = "(default)";
-          let title = getVariantDescription(val, true);
-          if (val != "") {
-            name = getVariantName(val, true, true);
-          }
-          option.value = val;
-          option.text = name;
-          if (title != "") {
-            option.title = title;
-          }
-          variantdropdown.appendChild(option);
-        });
-        variantdropdown.selectedIndex = 0;
-        //updateVariantDropdownTitles();
+        m.redraw();
       };
 
       const updateVariantTypeDropdown = () => {
-        const varianttypedropdown = $("#dropdown-varianttype");
-        while (varianttypedropdown.children.length > 2) {
-          varianttypedropdown.removeChild(varianttypedropdown[2]);
+        if (allvariants.length == 0) {
+          syncVariantsFromFfish();
         }
+        const varianttypedropdown = $("#dropdown-varianttype");
+        varianttypes = [];
         let varianttypevariantcount = [[], []];
         variantsettings[1].forEach((val) => {
           if (varianttypevariantcount[0].includes(val)) {
@@ -6307,16 +6311,56 @@
           }
         });
         varianttypes.sort();
-        varianttypes.forEach((val) => {
-          let option = document.createElement("option");
-          option.text = val;
-          option.value = val;
-          varianttypedropdown.appendChild(option);
-        });
         varianttypedropdown.selectedIndex = 0;
-        changing_variant_type = true;
-        $("#dropdown-variant").dispatchEvent(new Event("change"));
+        changing_variant_type = false;
+        updateVariantDropdown();
+        m.redraw();
       };
+
+      function syncVariantsFromFfish() {
+        if (
+          !window.ffishlib ||
+          typeof window.ffishlib.variants != "function" ||
+          typeof allvariants == "undefined"
+        ) {
+          seedVariantsFromVariantSettings();
+          return;
+        }
+        let detected = [];
+        try {
+          detected = window.ffishlib
+            .variants()
+            .split(" ")
+            .map((val) => val.trim())
+            .filter((val) => val.length > 0)
+            .sort();
+        } catch (err) {
+          console.warn("Failed to read variants from ffish:", err);
+        }
+        if (detected.length == 0) {
+          seedVariantsFromVariantSettings();
+          return;
+        }
+        allvariants = Array.from(new Set(detected));
+        console.log("Seeded variants from ffish:", allvariants);
+        if (variantsystemready) {
+          updateVariantTypeDropdown();
+        }
+      }
+
+      function seedVariantsFromVariantSettings() {
+        if (variantsettings[0].length == 0) {
+          return;
+        }
+        allvariants = Array.from(new Set(variantsettings[0])).sort();
+        varianttypes = Array.from(new Set(variantsettings[1])).sort();
+        variants = [""].concat(allvariants);
+        console.log(
+          "Seeded variants from variantsettings fallback:",
+          allvariants,
+        );
+        m.redraw();
+      }
 
       const updateUIThemeDropdown = (ui_id) => {
         const uithemedropdown = document.getElementById("dropdown-uitheme");
@@ -6564,6 +6608,15 @@
         allvariants = Array.from(new Set(allvariants.concat(detail.variants))).sort();
         if (variantsystemready) {
           updateVariantTypeDropdown();
+        }
+      });
+
+      document.addEventListener("ffish:ready", (event) => {
+        const detail = event.detail || {};
+        if (Array.isArray(detail.variants) && detail.variants.length > 0) {
+          allvariants = Array.from(new Set(detail.variants)).sort();
+        } else {
+          syncVariantsFromFfish();
         }
       });
 
@@ -6890,13 +6943,18 @@
                 title:
                   "The available types or categories of variants are shown in this list. Select one to see available variants in next dropdown.",
                 onchange: (e) => {
-                  changing_variant_type = true;
-                  $("#dropdown-variant").dispatchEvent(new Event("change"));
+                  changing_variant_type = false;
+                  updateVariantDropdown();
                 },
               },
               [
                 m("option", { value: "" }, "(all)"),
                 m("option", { value: "<|NC|>" }, "(not classified)"),
+                ...(
+                  varianttypes.length > 0
+                    ? varianttypes
+                    : Array.from(new Set(variantsettings[1])).sort()
+                ).map((val) => m("option", { value: val }, val)),
               ],
             ),
             m("p", "Name:"),
@@ -6915,8 +6973,20 @@
                 },
               },
               [
-                m("option", { value: "" }, "(default)"),
-                //...variants.map((ex, index) => m("option", { value: ex, title: getVariantDescription(ex, true) }, getVariantName(ex,true,true))),
+                ...(
+                  variants.length > 0
+                    ? variants
+                    : [""].concat(Array.from(new Set(variantsettings[0])).sort())
+                ).map((ex) =>
+                  m(
+                    "option",
+                    {
+                      value: ex,
+                      title: getVariantDescription(ex, true) || undefined,
+                    },
+                    ex == "" ? "(default)" : getVariantName(ex, true, true),
+                  ),
+                ),
               ],
             ),
             m("p", "Custom Position Type:"),
