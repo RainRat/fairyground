@@ -6594,9 +6594,17 @@
       const onSelectVariantsFile = async (e) => {
         const selected = e.currentTarget.files[0];
         if (selected) {
-          console.log(
-            "variants.ini upload is handled by the resilient browser helper loader.",
-          );
+          if (typeof window.loadVariantsIniIntoFfish == "function") {
+            try {
+              await window.loadVariantsIniIntoFfish(selected);
+            } catch (err) {
+              console.error("Advanced page variants.ini load failed:", err);
+            }
+          } else {
+            console.warn(
+              "variants.ini loader is not ready yet; browser helper was not updated.",
+            );
+          }
         }
       };
 
@@ -6606,6 +6614,9 @@
           return;
         }
         allvariants = Array.from(new Set(allvariants.concat(detail.variants))).sort();
+        console.log(
+          "Browser helper variants updated from variants.ini. External engines still need VariantPath set in Engine Management to use custom variants.",
+        );
         if (variantsystemready) {
           updateVariantTypeDropdown();
         }
@@ -7215,7 +7226,7 @@
                 m(
                   "p#whiteunsupportedvariant",
                   { hidden: true },
-                  "1st engine does not support this variant. In browser Fairy-Stockfish will be used instead.",
+                  "1st engine does not support this variant. In browser Fairy-Stockfish will be used instead. For custom variants, set VariantPath in Engine Management for this engine.",
                 ),
               ]),
               m("div#blackenginesettings", [
@@ -7252,14 +7263,14 @@
                 m(
                   "p#blackunsupportedvariant",
                   { hidden: true },
-                  "2nd engine does not support this variant. In browser Fairy-Stockfish will be used instead.",
+                  "2nd engine does not support this variant. In browser Fairy-Stockfish will be used instead. For custom variants, set VariantPath in Engine Management for this engine.",
                 ),
               ]),
               m("div#analysisenginesettings", [
                 m(
                   "p#analysisunsupportedvariant",
                   { hidden: true },
-                  "Analysis engine does not support this variant. In browser Fairy-Stockfish will be used instead.",
+                  "Analysis engine does not support this variant. In browser Fairy-Stockfish will be used instead. For custom variants, set VariantPath in Engine Management for this engine.",
                 ),
               ]),
             ],

@@ -3851,6 +3851,21 @@ new Module().then((loadedModule) => {
     const mkSectionText = (sectionText) =>
       preamble.length > 0 ? preamble + sectionText : sectionText;
 
+    const fullModule = await new Module();
+    try {
+      fullModule.loadVariantConfig(ini);
+      return {
+        module: fullModule,
+        loaded: sections.length > 0 ? sections.map((section) => section.name) : ["<full-file>"],
+        failed: [],
+      };
+    } catch (err) {
+      console.warn(
+        "Full variants.ini load failed; retrying section-by-section:",
+        err,
+      );
+    }
+
     if (sections.length == 0) {
       const module = await new Module();
       module.loadVariantConfig(ini);
@@ -3935,47 +3950,84 @@ new Module().then((loadedModule) => {
   ];
   const singleblankmatcher = new RegExp("[ ]+");
 
-  variantsIni.onchange = function (e) {
-    const selected = e.currentTarget.files[0];
+  window.loadVariantsIniIntoFfish = async function (selected) {
     resetTimer();
     recordedmultipv = 1;
+    if (!selected) {
+      return null;
+    }
+    window.ffishVariantsLoading = true;
+    const ini = await selected.text();
+    console.log(ini);
+    try {
+      const result = await loadVariantConfigResiliently(ini);
+      ffish = result.module;
+      window.ffishlib = result.module;
+      console.log(
+        "variants.ini loaded into browser helper:",
+        result.loaded.length,
+        "sections loaded,",
+        result.failed.length,
+        "sections skipped",
+      );
+      console.log(
+        "1d-chess present after load:",
+        result.module.variants().split(" ").includes("1d-chess"),
+      );
+      document.dispatchEvent(
+        new CustomEvent("variantsini:loaded", {
+          detail: {
+            variants: result.module.variants().split(" ").sort(),
+            loaded: result.loaded,
+            failed: result.failed,
+          },
+        }),
+      );
+      if (result.failed.length > 0) {
+        console.warn(
+          "Skipped incompatible variants.ini sections:",
+          result.failed,
+        );
+        window.alert(
+          `Loaded ${result.loaded.length} variant section(s); skipped ${result.failed.length} incompatible section(s). Check the console for details.`,
+        );
+      }
+      return result;
+    } catch (err) {
+      console.error("Failed to load local variants.ini into ffish:", err);
+      window.alert(
+        "Failed to load variants.ini into the browser helper. Built-in variants should still work; check the console for the parse error.",
+      );
+      throw err;
+    } finally {
+      window.ffishVariantsLoading = false;
+    }
+  };
+
+  variantsIni.onchange = function (e) {
+    const selected = e.currentTarget.files[0];
     if (selected) {
-      selected.text().then(async function (ini) {
-        console.log(ini);
-        try {
-          const result = await loadVariantConfigResiliently(ini);
-          ffish = result.module;
-          window.ffishlib = result.module;
-          document.dispatchEvent(
-            new CustomEvent("variantsini:loaded", {
-              detail: {
-                variants: result.module.variants().split(" ").sort(),
-                loaded: result.loaded,
-                failed: result.failed,
-              },
-            }),
-          );
-          if (result.failed.length > 0) {
-            console.warn(
-              "Skipped incompatible variants.ini sections:",
-              result.failed,
-            );
-            window.alert(
-              `Loaded ${result.loaded.length} variant section(s); skipped ${result.failed.length} incompatible section(s). Check the console for details.`,
-            );
-          }
-        } catch (err) {
-          console.error("Failed to load local variants.ini into ffish:", err);
-          window.alert(
-            "Failed to load variants.ini into the browser helper. Built-in variants should still work; check the console for the parse error.",
-          );
-        }
-      });
+      window.loadVariantsIniIntoFfish(selected);
     }
   };
 
   dropdownVariant.onchange = function () {
-    if (!ffish.variants().includes(dropdownVariant.value)) {
+    if (window.ffishVariantsLoading) {
+      window.alert(
+        "variants.ini is still loading into the browser helper. Wait a moment, then select the variant again.",
+      );
+      return;
+    }
+    const knownVariants = ffish.variants().split(" ");
+    console.log(
+      "dropdown variant change:",
+      dropdownVariant.value,
+      "known to ffish:",
+      knownVariants.includes(dropdownVariant.value),
+      "ffish === window.ffishlib:",
+      ffish === window.ffishlib,
+    );
+    if (!knownVariants.includes(dropdownVariant.value)) {
       window.alert(
         `Error: Selected variant "${dropdownVariant.value}" is not present in ffish.js. This means that there is a version mismatch between Fairy-Stockfish WebAssembly port and ffish.js. Please report this issue on Github Issues of this project.`,
       );
