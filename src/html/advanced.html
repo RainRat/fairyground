@@ -6549,18 +6549,23 @@
 
       const onSelectVariantsFile = async (e) => {
         const selected = e.currentTarget.files[0];
-        //console.log(`${selected}`);
         if (selected) {
-          const FS = stockfish.FS;
-          const buffer = await selected.arrayBuffer();
-          const array = new Uint8Array(buffer);
-          const filename = "/" + selected.name;
-          FS.writeFile(filename, array);
-          stockfish.postMessage(`check ${filename}`);
-          stockfish.postMessage(`load ${filename}`);
-          getVariants();
+          console.log(
+            "variants.ini upload is handled by the resilient browser helper loader.",
+          );
         }
       };
+
+      document.addEventListener("variantsini:loaded", (event) => {
+        const detail = event.detail || {};
+        if (!Array.isArray(detail.variants)) {
+          return;
+        }
+        allvariants = Array.from(new Set(allvariants.concat(detail.variants))).sort();
+        if (variantsystemready) {
+          updateVariantTypeDropdown();
+        }
+      });
 
       function isLetter(str) {
         return str.length === 1 && str.match(/[a-z]/i);

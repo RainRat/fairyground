@@ -106,6 +106,33 @@ If you want to use fairyground to test your experimental Fairy-Stockfish build, 
 
 9. The page displayed now is using your version of Fairy-Stockfish, and you can begin your test.
 
+#### ⊙ Local FSF-X browser-stack workflow
+
+If you are using a local `Fairy-Stockfish-X` plus a matching local
+`fairy-stockfish.wasm` fork, the browser stack is easiest to update from the
+wasm checkout instead of copying files by hand.
+
+This repository includes a helper script:
+
+```bash
+npm run sync-custom-browser-stack -- /path/to/fairy-stockfish.wasm
+npm run debug-build
+node server.js
+```
+
+The helper expects the wasm checkout to already contain:
+
+- `src/emscripten/public/stockfish.js`
+- `src/emscripten/public/stockfish.wasm`
+- `src/emscripten/public/stockfish.worker.js`
+- `src/emscripten/public/uci.js`
+- `tests/js/ffish.fairyground.js`
+- `tests/js/ffish.wasm`
+
+The `ffish.fairyground.js` file is a compatibility build for Fairyground's
+current Browserify pipeline. With newer Emscripten SDKs, the raw generated
+`ffish.js` may need a small post-process step before Fairyground can bundle it.
+
 ## Supported Browsers
 
 ### Full Support

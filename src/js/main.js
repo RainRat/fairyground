@@ -3797,6 +3797,116 @@ new Module().then((loadedModule) => {
   ffish = loadedModule;
   console.log("ffish.js initialized!");
   window.ffishlib = loadedModule; //Used in dev tools for debugging purposes and transfer to <script>
+
+  const splitVariantConfigSections = (ini) => {
+    const normalized = ini.replace(/\r\n?/g, "\n");
+    const lines = normalized.split("\n");
+    const sectionHeaderPattern = /^\s*\[[^\]]+\]\s*$/;
+    const preamble = [];
+    const sections = [];
+    let currentLines = [];
+    let currentName = null;
+
+    const flushCurrent = () => {
+      if (currentName == null || currentLines.length == 0) {
+        return;
+      }
+      sections.push({
+        name: currentName,
+        text: currentLines.join("\n").trimEnd() + "\n",
+      });
+      currentLines = [];
+      currentName = null;
+    };
+
+    lines.forEach((line) => {
+      if (sectionHeaderPattern.test(line)) {
+        flushCurrent();
+        currentName = line.trim().slice(1, -1).trim();
+        currentLines = [line];
+      } else if (currentName == null) {
+        preamble.push(line);
+      } else {
+        currentLines.push(line);
+      }
+    });
+    flushCurrent();
+
+    return {
+      preamble:
+        preamble.length > 0 ? preamble.join("\n").trimEnd() + "\n" : "",
+      sections,
+    };
+  };
+
+  const loadVariantConfigResiliently = async (ini) => {
+    const { preamble, sections } = splitVariantConfigSections(ini);
+    const mkSectionText = (sectionText) =>
+      preamble.length > 0 ? preamble + sectionText : sectionText;
+
+    if (sections.length == 0) {
+      const module = await new Module();
+      module.loadVariantConfig(ini);
+      return {
+        module,
+        loaded: ["<full-file>"],
+        failed: [],
+      };
+    }
+
+    let nextModule = await new Module();
+    const loadedTexts = [];
+    const loaded = [];
+    let pending = sections.map((section) => ({
+      section,
+      text: mkSectionText(section.text),
+      lastError: null,
+    }));
+
+    const replayLoadedSections = async () => {
+      const replayModule = await new Module();
+      for (const text of loadedTexts) {
+        replayModule.loadVariantConfig(text);
+      }
+      return replayModule;
+    };
+
+    while (pending.length > 0) {
+      let progressed = false;
+      const retry = [];
+
+      for (const entry of pending) {
+        const trialModule = await replayLoadedSections();
+        try {
+          trialModule.loadVariantConfig(entry.text);
+          nextModule = trialModule;
+          loadedTexts.push(entry.text);
+          loaded.push(entry.section.name);
+          progressed = true;
+        } catch (err) {
+          retry.push({
+            ...entry,
+            lastError: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+
+      if (!progressed) {
+        pending = retry;
+        break;
+      }
+
+      pending = retry;
+    }
+
+    const failed = pending.map((entry) => ({
+      name: entry.section.name,
+      error: entry.lastError || "Unknown parse error",
+    }));
+
+    return { module: nextModule, loaded, failed };
+  };
+
   initBoard(dropdownVariant.value);
   soundMove.volume = rangeVolume.value;
   soundCapture.volume = rangeVolume.value;
@@ -3823,10 +3933,30 @@ new Module().then((loadedModule) => {
     resetTimer();
     recordedmultipv = 1;
     if (selected) {
-      selected.text().then(function (ini) {
+      selected.text().then(async function (ini) {
         console.log(ini);
         try {
-          ffish.loadVariantConfig(ini);
+          const result = await loadVariantConfigResiliently(ini);
+          ffish = result.module;
+          window.ffishlib = result.module;
+          document.dispatchEvent(
+            new CustomEvent("variantsini:loaded", {
+              detail: {
+                variants: result.module.variants().split(" ").sort(),
+                loaded: result.loaded,
+                failed: result.failed,
+              },
+            }),
+          );
+          if (result.failed.length > 0) {
+            console.warn(
+              "Skipped incompatible variants.ini sections:",
+              result.failed,
+            );
+            window.alert(
+              `Loaded ${result.loaded.length} variant section(s); skipped ${result.failed.length} incompatible section(s). Check the console for details.`,
+            );
+          }
         } catch (err) {
           console.error("Failed to load local variants.ini into ffish:", err);
           window.alert(
