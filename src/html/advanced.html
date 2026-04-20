@@ -6597,6 +6597,7 @@
           if (typeof window.loadVariantsIniIntoFfish == "function") {
             try {
               await window.loadVariantsIniIntoFfish(selected);
+              await maybeApplyVariantPathToExternalEngines(selected);
             } catch (err) {
               console.error("Advanced page variants.ini load failed:", err);
             }
@@ -6606,6 +6607,116 @@
             );
           }
         }
+      };
+
+      const VARIANT_PATH_STORAGE_KEY = "fairyground-last-variantpath";
+
+      const getLoadedVariantPathEngines = () => {
+        return [fge.first_engine, fge.second_engine, fge.analysis_engine].filter(
+          (engine) =>
+            engine &&
+            engine.IsLoaded &&
+            Array.isArray(engine.Options) &&
+            engine.Options.some((option) => /^VariantPath$/i.test(option.name)),
+        );
+      };
+
+      const getEngineVariantPath = (engine) => {
+        if (!engine || !Array.isArray(engine.Options)) {
+          return "";
+        }
+        const option = engine.Options.find((entry) =>
+          /^VariantPath$/i.test(entry.name),
+        );
+        if (!option || option.current == "<empty>") {
+          return "";
+        }
+        return option.current || "";
+      };
+
+      const setEngineVariantPath = (engine, variantPath) => {
+        if (!engine || !Array.isArray(engine.Options)) {
+          return false;
+        }
+        let changed = false;
+        engine.Options = engine.Options.map((option) => {
+          if (!/^VariantPath$/i.test(option.name)) {
+            return option;
+          }
+          if (option.current === variantPath) {
+            return option;
+          }
+          changed = true;
+          return { ...option, current: variantPath };
+        });
+        if (!changed) {
+          return false;
+        }
+        engine.SetOptions(engine.Options);
+        engine.SaveOptionsToEngineList(engine_list);
+        return true;
+      };
+
+      const maybeApplyVariantPathToExternalEngines = async (selected) => {
+        const loadedEngines = getLoadedVariantPathEngines();
+        if (!selected || loadedEngines.length === 0) {
+          return;
+        }
+        const existingPaths = loadedEngines
+          .map((engine) => getEngineVariantPath(engine))
+          .filter((value) => value !== "");
+        if (existingPaths.length === loadedEngines.length) {
+          console.log(
+            "Loaded variants.ini into browser helper; external engines already have VariantPath configured.",
+          );
+          return;
+        }
+        const shouldApply = window.confirm(
+          `Loaded ${selected.name} into the browser helper. Apply a server-side VariantPath for the currently loaded external engines now?`,
+        );
+        if (!shouldApply) {
+          return;
+        }
+        const rememberedPath =
+          window.localStorage.getItem(VARIANT_PATH_STORAGE_KEY) || "";
+        const variantPath = window.prompt(
+          "Enter the server-side path to this variants.ini for external engines.",
+          rememberedPath,
+        );
+        if (typeof variantPath != "string") {
+          return;
+        }
+        const normalizedPath = variantPath.trim();
+        if (normalizedPath == "") {
+          return;
+        }
+        let changedCount = 0;
+        loadedEngines.forEach((engine) => {
+          if (setEngineVariantPath(engine, normalizedPath)) {
+            changedCount++;
+          }
+        });
+        if (changedCount === 0) {
+          console.log(
+            "VariantPath prompt completed, but the loaded external engines already had that path.",
+          );
+          return;
+        }
+        window.localStorage.setItem(
+          VARIANT_PATH_STORAGE_KEY,
+          normalizedPath,
+        );
+        try {
+          fge.SaveEngineList(engine_list, fge.ws);
+        } catch (err) {
+          console.warn("Failed to persist updated VariantPath to engine list:", err);
+        }
+        console.log(
+          `Applied VariantPath to ${changedCount} loaded external engine(s): ${normalizedPath}`,
+        );
+        window.alert(
+          `Applied VariantPath to ${changedCount} loaded external engine(s). Their custom variant lists may refresh after re-detecting options.`,
+        );
       };
 
       document.addEventListener("variantsini:loaded", (event) => {
