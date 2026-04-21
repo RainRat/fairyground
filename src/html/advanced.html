@@ -4623,6 +4623,37 @@
         setVariantStylesheet(effectiveVariant);
       };
 
+      let derivedStateBoard = null;
+      let derivedStateBoardVariant = null;
+      let derivedStateBoardIs960 = null;
+      let derivedStateCacheKey = null;
+      let derivedStateCacheResult = false;
+
+      const resetDerivedStateCache = () => {
+        derivedStateCacheKey = null;
+      };
+
+      const getDerivedStateBoard = (variant, is960) => {
+        if (
+          derivedStateBoard &&
+          derivedStateBoardVariant == variant &&
+          derivedStateBoardIs960 == is960
+        ) {
+          return derivedStateBoard;
+        }
+        if (derivedStateBoard) {
+          derivedStateBoard.delete();
+        }
+        derivedStateBoard = new window.ffishlib.Board(
+          variant,
+          window.ffishlib.startingFen(variant),
+          is960,
+        );
+        derivedStateBoardVariant = variant;
+        derivedStateBoardIs960 = is960;
+        return derivedStateBoard;
+      };
+
       const syncDerivedPositionState = () => {
         const gamestatus = document.getElementById("gamestatus");
         const stm = document.getElementById("label-stm");
@@ -4637,8 +4668,23 @@
           .startsWith(currentBoardFenPrefix)
           ? currentBoardFenText.slice(currentBoardFenPrefix.length).trim()
           : "";
+        const baseFen =
+          currentBoardFen.length > 0
+            ? currentBoardFen
+            : fen.length > 0
+              ? fen
+              : window.ffishlib
+                ? window.ffishlib.startingFen(variant)
+                : "";
+        const cacheKey = [
+          variant,
+          fischer_random_mode ? "960" : "classic",
+          baseFen,
+          currentBoardFen.length == 0 ? moves : "",
+        ].join("\u241f");
 
         if (!window.ffishlib) {
+          resetDerivedStateCache();
           stm.innerText = "undefined";
           if (!during_play) {
             gamestatus.innerText = "END";
@@ -4646,27 +4692,24 @@
           return false;
         }
 
-        let tmpboard = null;
+        if (derivedStateCacheKey === cacheKey) {
+          return derivedStateCacheResult;
+        }
+
         try {
-          tmpboard = new window.ffishlib.Board(
-            variant,
-            currentBoardFen.length > 0
-              ? currentBoardFen
-              : fen.length > 0
-                ? fen
-                : window.ffishlib.startingFen(variant),
-            fischer_random_mode,
-          );
+          const tmpboard = getDerivedStateBoard(variant, fischer_random_mode);
+          tmpboard.setFen(baseFen);
           if (
             currentBoardFen.length == 0 &&
             moves.length > 0 &&
             !tmpboard.pushMoves(moves)
           ) {
-            tmpboard.delete();
+            resetDerivedStateCache();
             stm.innerText = "undefined";
             if (!during_play) {
               gamestatus.innerText = "END";
             }
+            derivedStateCacheResult = false;
             return false;
           }
 
@@ -4681,17 +4724,17 @@
             gamestatus.innerText =
               tmpboard.turn() ? "PLAYING_WHITE" : "PLAYING_BLACK";
           }
-          tmpboard.delete();
+          derivedStateCacheKey = cacheKey;
+          derivedStateCacheResult = true;
           return true;
         } catch (err) {
-          if (tmpboard) {
-            tmpboard.delete();
-          }
+          resetDerivedStateCache();
           console.warn("Failed to sync derived position state:", err);
           stm.innerText = "undefined";
           if (!during_play) {
             gamestatus.innerText = "END";
           }
+          derivedStateCacheResult = false;
           return false;
         }
       };
