@@ -6673,6 +6673,27 @@
 
       const VARIANT_PATH_STORAGE_KEY = "fairyground-last-variantpath";
 
+      const getVariantPathInput = () =>
+        document.getElementById("variantpath-inline");
+
+      const getVariantPathStatus = () =>
+        document.getElementById("variantpath-status");
+
+      const setVariantPathStatus = (message) => {
+        const status = getVariantPathStatus();
+        if (status) {
+          status.innerText = message;
+        }
+      };
+
+      const seedVariantPathInput = () => {
+        const input = getVariantPathInput();
+        if (!input || input.value.trim() != "") {
+          return;
+        }
+        input.value = window.localStorage.getItem(VARIANT_PATH_STORAGE_KEY) || "";
+      };
+
       const getLoadedVariantPathEngines = () => {
         return [fge.first_engine, fge.second_engine, fge.analysis_engine].filter(
           (engine) =>
@@ -6719,6 +6740,47 @@
         return true;
       };
 
+      const applyVariantPathToLoadedExternalEngines = (variantPath) => {
+        const normalizedPath =
+          typeof variantPath == "string" ? variantPath.trim() : "";
+        if (normalizedPath == "") {
+          setVariantPathStatus("Enter a server-side VariantPath to apply.");
+          return 0;
+        }
+        const loadedEngines = getLoadedVariantPathEngines();
+        if (loadedEngines.length === 0) {
+          setVariantPathStatus(
+            "No loaded external engines with a VariantPath option are available.",
+          );
+          return 0;
+        }
+        let changedCount = 0;
+        loadedEngines.forEach((engine) => {
+          if (setEngineVariantPath(engine, normalizedPath)) {
+            changedCount++;
+          }
+        });
+        window.localStorage.setItem(VARIANT_PATH_STORAGE_KEY, normalizedPath);
+        try {
+          fge.SaveEngineList(engine_list, fge.ws);
+        } catch (err) {
+          console.warn("Failed to persist updated VariantPath to engine list:", err);
+        }
+        if (changedCount === 0) {
+          setVariantPathStatus(
+            `Loaded external engines already use ${normalizedPath}.`,
+          );
+          return 0;
+        }
+        setVariantPathStatus(
+          `Applied VariantPath to ${changedCount} loaded external engine(s).`,
+        );
+        console.log(
+          `Applied VariantPath to ${changedCount} loaded external engine(s): ${normalizedPath}`,
+        );
+        return changedCount;
+      };
+
       const maybeApplyVariantPathToExternalEngines = async (selected) => {
         const loadedEngines = getLoadedVariantPathEngines();
         if (!selected || loadedEngines.length === 0) {
@@ -6731,53 +6793,14 @@
           console.log(
             "Loaded variants.ini into browser helper; external engines already have VariantPath configured.",
           );
-          return;
-        }
-        const shouldApply = window.confirm(
-          `Loaded ${selected.name} into the browser helper. Apply a server-side VariantPath for the currently loaded external engines now?`,
-        );
-        if (!shouldApply) {
-          return;
-        }
-        const rememberedPath =
-          window.localStorage.getItem(VARIANT_PATH_STORAGE_KEY) || "";
-        const variantPath = window.prompt(
-          "Enter the server-side path to this variants.ini for external engines.",
-          rememberedPath,
-        );
-        if (typeof variantPath != "string") {
-          return;
-        }
-        const normalizedPath = variantPath.trim();
-        if (normalizedPath == "") {
-          return;
-        }
-        let changedCount = 0;
-        loadedEngines.forEach((engine) => {
-          if (setEngineVariantPath(engine, normalizedPath)) {
-            changedCount++;
-          }
-        });
-        if (changedCount === 0) {
-          console.log(
-            "VariantPath prompt completed, but the loaded external engines already had that path.",
+          setVariantPathStatus(
+            "External engines already have VariantPath configured.",
           );
           return;
         }
-        window.localStorage.setItem(
-          VARIANT_PATH_STORAGE_KEY,
-          normalizedPath,
-        );
-        try {
-          fge.SaveEngineList(engine_list, fge.ws);
-        } catch (err) {
-          console.warn("Failed to persist updated VariantPath to engine list:", err);
-        }
-        console.log(
-          `Applied VariantPath to ${changedCount} loaded external engine(s): ${normalizedPath}`,
-        );
-        window.alert(
-          `Applied VariantPath to ${changedCount} loaded external engine(s). Their custom variant lists may refresh after re-detecting options.`,
+        seedVariantPathInput();
+        setVariantPathStatus(
+          `Loaded ${selected.name} into the browser helper. Enter the server-side path below and click Apply VariantPath for external engines.`,
         );
       };
 
@@ -6787,6 +6810,7 @@
           return;
         }
         allvariants = Array.from(new Set(allvariants.concat(detail.variants))).sort();
+        seedVariantPathInput();
         console.log(
           "Browser helper variants updated from variants.ini. External engines still need VariantPath set in Engine Management to use custom variants.",
         );
@@ -7005,6 +7029,28 @@
                   disabled: !is_ready || review_mode || board_setup_mode,
                   onchange: onSelectVariantsFile,
                 }),
+                m("input#variantpath-inline", {
+                  type: "text",
+                  placeholder: "Server-side VariantPath",
+                  disabled: !is_ready || review_mode || board_setup_mode,
+                  style: "margin-left: 0.5rem; min-width: 20rem;",
+                  oncreate: seedVariantPathInput,
+                }),
+                m(
+                  "button",
+                  {
+                    type: "button",
+                    disabled: !is_ready || review_mode || board_setup_mode,
+                    onclick: () => {
+                      const input = getVariantPathInput();
+                      applyVariantPathToLoadedExternalEngines(
+                        input ? input.value : "",
+                      );
+                    },
+                    style: "margin-left: 0.35rem;",
+                  },
+                  "Apply VariantPath",
+                ),
                 m(
                   "span",
                   {
@@ -7015,6 +7061,14 @@
                       ),
                   },
                   "[?]",
+                ),
+                m(
+                  "div#variantpath-status",
+                  {
+                    style:
+                      "margin-top: 0.25rem; font-size: 0.9em; color: var(--dim-text, #666);",
+                  },
+                  "",
                 ),
               ]),
               m("div", { hidden: during_play }, [
