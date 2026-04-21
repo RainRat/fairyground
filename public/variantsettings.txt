@@ -278,15 +278,15 @@ kono|Rule Variants|Kono|Move all your pieces to the squares where your opponent'
 
 # Additional Fairy-Stockfish-X variants synced from current variants.ini
 # Chess Variants additions
-alterga|Chess Variants|Alterga|Additional chess-family variant from Fairy-Stockfish-X.|
+alterga|Chess Variants|Alterga|Chess variant played from the normal setup with altered move behavior and objectives.|
 anti-king-1|Chess Variants|Anti-King 1|Additional chess-family variant from Fairy-Stockfish-X.|
 anti-king-2|Chess Variants|Anti-King 2|Additional chess-family variant from Fairy-Stockfish-X.|
 balancedalternation2|Chess Variants|Balancedalternation2|Additional chess-family variant from Fairy-Stockfish-X.|
 capped-pawns|Chess Variants|Capped Pawns|Additional chess-family variant from Fairy-Stockfish-X.|
 capture-anything|Chess Variants|Capture Anything|Rule variant that broadens what can be captured, including otherwise unusual targets.|
-checkless|Chess Variants|Checkless|Additional chess-family variant from Fairy-Stockfish-X.|
+checkless|Chess Variants|Checkless|Check is ignored; games are decided by direct king capture rather than orthodox checkmate.|
 chess-siberia|Chess Variants|Chess Siberia|Additional chess-family variant from Fairy-Stockfish-X.|
-cylinder|Chess Variants|Cylinder|Additional chess-family variant from Fairy-Stockfish-X.|
+cylinder|Chess Variants|Cylinder|Chess on a cylindrical board where the left and right edges wrap around.|
 cylinder-castling|Chess Variants|Cylinder Castling|Additional chess-family variant from Fairy-Stockfish-X.|
 demi-chess|Chess Variants|Demi Chess|Additional chess-family variant from Fairy-Stockfish-X.|
 forced-en-passant|Chess Variants|Forced En Passant|Additional chess-family variant from Fairy-Stockfish-X.|
@@ -294,15 +294,15 @@ gadsden-toroidal|Chess Variants|Gadsden Toroidal|Additional chess-family variant
 gadsden-toroidal-wrap-pawns|Chess Variants|Gadsden Toroidal Wrap Pawns|Additional chess-family variant from Fairy-Stockfish-X.|
 half-chess|Chess Variants|Half Chess|Additional chess-family variant from Fairy-Stockfish-X.|
 infiltration-danger|Chess Variants|Infiltration Danger|Additional chess-family variant from Fairy-Stockfish-X.|
-marseillais|Chess Variants|Marseillais|Additional chess-family variant from Fairy-Stockfish-X.|
+marseillais|Chess Variants|Marseillais|Players normally make two moves per turn, subject to Marseillais chess restrictions.|
 monad|Chess Variants|Monad|Additional chess-family variant from Fairy-Stockfish-X.|
 no-castle-10|Chess Variants|No Castle 10|Additional chess-family variant from Fairy-Stockfish-X.|
 pawns|Chess Variants|Pawns|Additional chess-family variant from Fairy-Stockfish-X.|
 promotion-chess|Chess Variants|Promotion Chess|Additional chess-family variant from Fairy-Stockfish-X.|
-rifle-chess|Chess Variants|Rifle Chess|Additional chess-family variant from Fairy-Stockfish-X.|
+rifle-chess|Chess Variants|Rifle Chess|Captures are made at range: the moving piece does not occupy the captured piece's square.|
 stone-gravitation|Chess Variants|Stone Gravitation|Additional chess-family variant from Fairy-Stockfish-X.|
 strong-pawn|Chess Variants|Strong Pawn|Additional chess-family variant from Fairy-Stockfish-X.|
-toroidal-chess|Chess Variants|Toroidal Chess|Additional chess-family variant from Fairy-Stockfish-X.|
+toroidal-chess|Chess Variants|Toroidal Chess|Chess on a toroidal board where both files and ranks wrap around.|
 trapped-queens|Chess Variants|Trapped Queens|Additional chess-family variant from Fairy-Stockfish-X.|
 witch-hunting|Chess Variants|Witch Hunting|Additional chess-family variant from Fairy-Stockfish-X.|
 # Makruk Variants additions
@@ -312,18 +312,18 @@ manzhouqi|Xiangqi Variants|Manzhouqi|Additional Xiangqi-family variant from Fair
 # Fairy Variants additions
 antimatter|Fairy Variants|Antimatter|Capture effects can annihilate same-type pieces, creating highly tactical chain reactions.|
 aries|Fairy Variants|Aries|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-battery-chess|Fairy Variants|Battery Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+battery-chess|Fairy Variants|Battery Chess|Promotion depends on pieces held in hand, tying upgrade choices to capture-and-drop economy.|
 beast-chess|Fairy Variants|Beast Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-benedict|Fairy Variants|Benedict|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+benedict|Fairy Variants|Benedict|Capturing converts the captured piece to the capturer's side instead of removing it.|
 bishop-knight-morph-factor|Fairy Variants|Bishop-Knight Morph Factor|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-bombardment|Fairy Variants|Bombardment|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+bombardment|Fairy Variants|Bombardment|Mutually explosive army game where blast rules and extinction decide the result.|
 chaturanga-al-adli|Fairy Variants|Chaturanga al-Adli|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 chaturanga-payagunda|Fairy Variants|Chaturanga Payagunda|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 compound-chess|Fairy Variants|Compound Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 constabulary-chess|Fairy Variants|Constabulary Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 crazy-cavalier|Fairy Variants|Crazy Cavalier|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 crown-prince-chess|Fairy Variants|Crown Prince Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-dodgem|Fairy Variants|Dodgem|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+dodgem|Fairy Variants|Dodgem|Abstract traffic-style game where pieces race off the board instead of capturing normally.|
 dueling-archbishops|Fairy Variants|Dueling Archbishops|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 eurasian|Fairy Variants|Eurasian|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 extramovearmageddon|Fairy Variants|Extra Move Armageddon|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
@@ -348,16 +348,16 @@ leaperhouse|Fairy Variants|Leaperhouse|Fairy-piece or custom-movement variant fr
 lewthwaite-swap|Fairy Variants|Lewthwaite Swap|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 little-trio|Fairy Variants|Little Trio|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 mccooey-chess|Fairy Variants|Mccooey Chess|Hexagonal chess in the McCooey tradition.|
-monster|Fairy Variants|Monster|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+monster|Fairy Variants|Monster|Asymmetric fairy-chess battle with a reduced royal side facing a full orthodox army.|
 oshi|Fairy Variants|Oshi|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-progressive|Fairy Variants|Progressive|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+progressive|Fairy Variants|Progressive|Players make progressively longer move sequences on each turn.|
 qubic|Fairy Variants|Qubic|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 reach-chess|Fairy Variants|Reach Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 rebel-chess|Fairy Variants|Rebel Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-rugby|Fairy Variants|Rugby|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+rugby|Fairy Variants|Rugby|Ball-carrying objective game built on chess movement rather than checkmate.|
 sacrifice|Fairy Variants|Sacrifice|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 saxun|Fairy Variants|Saxun|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-setup-chess|Fairy Variants|Setup Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+setup-chess|Fairy Variants|Setup Chess|Players place their armies from a large reserve before normal play begins.|
 shatranj-12x12|Fairy Variants|Shatranj 12x12|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 shatranj-14x14|Fairy Variants|Shatranj 14x14|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 shatranj-al-jawarhiya|Fairy Variants|Shatranj al-Jawarhiya|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
@@ -381,22 +381,22 @@ hindustani|Asymmetric Variants|Hindustani|Asymmetric variant with different armi
 separate-realms|Asymmetric Variants|Separate Realms|Asymmetric variant with different armies and piece roles.|
 # Rule Variants additions
 achi|Rule Variants|Achi|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-all-queens-chess|Rule Variants|All Queens Chess|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+all-queens-chess|Rule Variants|All Queens Chess|Abstract all-queen game focused on forming lines rather than orthodox mating play.|
 apit|Rule Variants|Apit|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
 apit-sodok|Rule Variants|Apit Sodok|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
 ardri|Rule Variants|Ardri|Tafl surround-capture game on a 7×7 board. Defenders escort the king to the edge while attackers try to surround and capture it.|
 battleotk|Rule Variants|Battle OTK|Suffix-move variant where moves can leave transformed royal pieces behind; the browser helper needs external-engine adjudication.|
 brandub|Rule Variants|Brandub|Compact tafl surround-capture game derived from Ardri, with the king escaping to the corners.|
 checkers|Rule Variants|Checkers|Checkers / draughts family variant with diagonal movement and mandatory capture play.|
-crossway|Rule Variants|Crossway|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+crossway|Rule Variants|Crossway|Connection game where the goal is to link opposite sides of the board.|
 dots-boxes-15x15|Rule Variants|Dots and Boxes 15x15|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
 dots-boxes-7x7|Rule Variants|Dots and Boxes 7x7|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
 dots-boxes-9x9|Rule Variants|Dots and Boxes 9x9|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-dris-at-talata|Rule Variants|Dris At Talata|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+dris-at-talata|Rule Variants|Dris At Talata|Three-in-a-row alignment game from the draughts and abstract-strategy family.|
 english-draughts|Rule Variants|English Draughts|English draughts rules within Fairy-Stockfish-X.|
-esa-hex|Rule Variants|ESA Hex|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-fart-5x5|Rule Variants|Fart 5x5|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-fart-7x7|Rule Variants|Fart 7x7|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+esa-hex|Rule Variants|ESA Hex|Hex-style connection game variant on an expanded board.|
+fart-5x5|Rule Variants|Fart 5x5|Small-board abstract placement and connection game.|
+fart-7x7|Rule Variants|Fart 7x7|Larger-board version of the abstract Fart connection game.|
 gomoku|Rule Variants|Gomoku|Five-in-a-row connection game.|
 grand-hexachess|Rule Variants|Grand Hexachess|Large hexagonal chess variant.|
 groups|Rule Variants|Groups|Connection variant focused on forming a single connected group of pieces.|
@@ -407,37 +407,37 @@ groups-queen-jump-fixed|Rule Variants|Groups Queen Jump Fixed|Fixed-start connec
 groups-queen-jump-setup|Rule Variants|Groups Queen Jump Setup|Setup connection variant with queen-like jumping movement.|
 groups-queen-setup|Rule Variants|Groups Queen Setup|Setup connection variant using queen-like movement and a group-connection objective.|
 groups-setup|Rule Variants|Groups Setup|Setup connection variant focused on forming a single connected group of pieces.|
-hasami|Rule Variants|Hasami|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+hasami|Rule Variants|Hasami|Custodial capture game where pieces are sandwiched orthogonally between enemy men.|
 hex|Rule Variants|Hex|Connection game played on a hex board.|
-hex-10x10|Rule Variants|Hex 10x10|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-hex-16x16|Rule Variants|Hex 16x16|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-hex-7x7|Rule Variants|Hex 7x7|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+hex-10x10|Rule Variants|Hex 10x10|10×10 Hex connection game.|
+hex-16x16|Rule Variants|Hex 16x16|16×16 Hex connection game.|
+hex-7x7|Rule Variants|Hex 7x7|7×7 Hex connection game.|
 hnefatafl|Rule Variants|Hnefatafl|Large tafl surround-capture game with asymmetric forces and king escape play.|
-kharebga|Rule Variants|Kharebga|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-kharebga-7x7|Rule Variants|Kharebga 7x7|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-kings-or-lemmings|Rule Variants|Kings or Lemmings|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+kharebga|Rule Variants|Kharebga|Custodial capture game from the alquerque family.|
+kharebga-7x7|Rule Variants|Kharebga 7x7|7×7 version of the custodial capture game Kharebga.|
+kings-or-lemmings|Rule Variants|Kings or Lemmings|Race and survival game where royal pieces try to reach safety instead of mating the enemy.|
 kings-valley|Rule Variants|Kings Valley|Race a royal piece into the center valley while obeying maximum-distance rider movement.|
-konane|Rule Variants|Konane|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-konobi|Rule Variants|Konobi|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-kopano|Rule Variants|Kopano|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+konane|Rule Variants|Konane|Hawaiian leap-capture game sometimes described as Hawaiian checkers.|
+konobi|Rule Variants|Konobi|Connection-oriented abstract game from the same family as Kono-style variants.|
+kopano|Rule Variants|Kopano|Connection and territory game from the modern abstract-strategy family.|
 large-pond|Rule Variants|Large Pond|Larger pond-family variant from Fairy-Stockfish-X.|
 linesofaction|Rule Variants|Linesofaction|Connection game where the goal is to join all of your pieces into a single connected group.|
-maak-yek|Rule Variants|Maak Yek|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-mandala|Rule Variants|Mandala|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+maak-yek|Rule Variants|Maak Yek|Thai alignment game where players aim to form a winning line of pieces.|
+mandala|Rule Variants|Mandala|Abstract connection game with region-based placement and enclosure goals.|
 minihexchess|Rule Variants|Mini Hexchess|Chess-style play on a compact hex board.|
 mini-pond|Rule Variants|Mini Pond|Smaller pond-family variant from Fairy-Stockfish-X.|
 misere-hex|Rule Variants|Misere Hex|Hex where completing your own connection is a loss.|
-neutreeko|Rule Variants|Neutreeko|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+neutreeko|Rule Variants|Neutreeko|Players try to align three pieces in a row on a sparse abstract board.|
 old-hnefatafl|Rule Variants|Old Hnefatafl|Historical tafl-style surround-capture variant with king escape play.|
-pathway|Rule Variants|Pathway|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+pathway|Rule Variants|Pathway|Connection game where players build a continuous route across the board.|
 pond|Rule Variants|Pond|Rule-driven pond-family variant from Fairy-Stockfish-X.|
 royal-race|Rule Variants|Royal Race|Race variant with royal pieces aiming for the goal zone rather than checkmate.|
 tablut|Rule Variants|Tablut|Classic 9×9 tafl game. Attackers surround the king while defenders try to escape with it.|
 tablut-corner-escape|Rule Variants|Tablut Corner Escape|Tablut variant where the king escapes to the corners instead of the edge.|
 tablut-throne-adjacent-strong|Rule Variants|Tablut Throne-Adjacent Strong|Tablut variant with stronger king capture rules near the throne.|
 tawlbwrdd|Rule Variants|Tawlbwrdd|Welsh tafl variant with surround-capture play and royal escape objectives.|
-toot-otto|Rule Variants|Toot Otto|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-troll|Rule Variants|Troll|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+toot-otto|Rule Variants|Toot Otto|Connect-style word game where players try to spell TOOT or OTTO with drops.|
+troll|Rule Variants|Troll|Abstract objective game with non-orthodox win conditions and movement rules.|
 villagers|Rule Variants|Villagers|Rule-driven variant from Fairy-Stockfish-X.|
 y|Rule Variants|Y|Connection game played on a Y-shaped board.|
 
