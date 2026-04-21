@@ -281,7 +281,7 @@ kono|Rule Variants|Kono|Move all your pieces to the squares where your opponent'
 alterga|Chess Variants|Alterga|Chess variant played from the normal setup with altered move behavior and objectives.|
 anti-king-1|Chess Variants|Anti-King 1|Chess variant featuring anti-royal king logic and non-orthodox check objectives.|
 anti-king-2|Chess Variants|Anti-King 2|Alternative anti-royal king ruleset in the anti-king chess family.|
-balancedalternation2|Chess Variants|Balancedalternation2|Additional chess-family variant from Fairy-Stockfish-X.|
+balancedalternation2|Chess Variants|Balancedalternation2|Alternating-move chess variant tuned for a more balanced opening sequence.|
 capped-pawns|Chess Variants|Capped Pawns|Pawn movement and promotion are constrained compared with orthodox chess.|
 capture-anything|Chess Variants|Capture Anything|Rule variant that broadens what can be captured, including otherwise unusual targets.|
 checkless|Chess Variants|Checkless|Check is ignored; games are decided by direct king capture rather than orthodox checkmate.|
@@ -342,36 +342,36 @@ ichess|Fairy Variants|Ichess|Experimental fairy-chess variant with custom moveme
 jedi-chess|Fairy Variants|Jedi Chess|Star-wars-inspired fairy variant with force-themed custom movement.|
 kamikaze|Fairy Variants|Kamikaze|Self-destructive fairy-chess variant where captures or moves can sacrifice the mover.|
 kamikaze-giveaway|Fairy Variants|Kamikaze Giveaway|Loss-objective variant combining kamikaze self-destruction with giveaway rules.|
-ko-app-paw-na|Fairy Variants|Ko App Paw Na|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-ko-oshi|Fairy Variants|Ko Oshi|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-leaperhouse|Fairy Variants|Leaperhouse|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-lewthwaite-swap|Fairy Variants|Lewthwaite Swap|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-little-trio|Fairy Variants|Little Trio|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+ko-app-paw-na|Fairy Variants|Ko App Paw Na|Regional-style fairy variant with custom promotion and movement rules.|
+ko-oshi|Fairy Variants|Ko Oshi|Push-and-position fairy variant with custom movement and tactical displacement play.|
+leaperhouse|Fairy Variants|Leaperhouse|Crazyhouse-style variant where dropped or promoted material emphasizes leaper pieces.|
+lewthwaite-swap|Fairy Variants|Lewthwaite Swap|Abstract variant in the Lewthwaite family with swapping or relocation mechanics.|
+little-trio|Fairy Variants|Little Trio|Compact fairy-chess game with a very small army and tactical custom movement.|
 mccooey-chess|Fairy Variants|Mccooey Chess|Hexagonal chess in the McCooey tradition.|
 monster|Fairy Variants|Monster|Asymmetric fairy-chess battle with a reduced royal side facing a full orthodox army.|
-oshi|Fairy Variants|Oshi|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+oshi|Fairy Variants|Oshi|Push-based abstract game where forceful displacement matters as much as capture.|
 progressive|Fairy Variants|Progressive|Players make progressively longer move sequences on each turn.|
-qubic|Fairy Variants|Qubic|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-reach-chess|Fairy Variants|Reach Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-rebel-chess|Fairy Variants|Rebel Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+qubic|Fairy Variants|Qubic|Three-dimensional alignment game related to 4-in-a-row on a cube.|
+reach-chess|Fairy Variants|Reach Chess|Chess variant where movement and attack reach are extended by custom pieces or rules.|
+rebel-chess|Fairy Variants|Rebel Chess|Asymmetric or insurgent-themed fairy chess with nonstandard army behavior.|
 rugby|Fairy Variants|Rugby|Ball-carrying objective game built on chess movement rather than checkmate.|
-sacrifice|Fairy Variants|Sacrifice|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-saxun|Fairy Variants|Saxun|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+sacrifice|Fairy Variants|Sacrifice|Variant that rewards or requires material sacrifice as a core tactical theme.|
+saxun|Fairy Variants|Saxun|Historical or regional fairy variant with custom movement conventions.|
 setup-chess|Fairy Variants|Setup Chess|Players place their armies from a large reserve before normal play begins.|
-shatranj-12x12|Fairy Variants|Shatranj 12x12|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-shatranj-14x14|Fairy Variants|Shatranj 14x14|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-shatranj-al-jawarhiya|Fairy Variants|Shatranj al-Jawarhiya|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-shatranj-iraq|Fairy Variants|Shatranj Iraq|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-shatranj-turkey|Fairy Variants|Shatranj Turkey|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-slide-5|Fairy Variants|Slide 5|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-tictactoe-3d|Fairy Variants|Tic-tac-toe 3D|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-tictactoe-4d|Fairy Variants|Tic-tac-toe 4D|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-tictactoe-misere|Fairy Variants|Tic-tac-toe Misere|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-tsatsarandi|Fairy Variants|Tsatsarandi|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-van-gennip-hexchess|Fairy Variants|Van Gennip Hexchess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-van-gennip-small-hexchess|Fairy Variants|Van Gennip Small Hexchess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-whaleshogi|Fairy Variants|Whaleshogi|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-xxl|Fairy Variants|Xxl|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+shatranj-12x12|Fairy Variants|Shatranj 12x12|Large-board shatranj expansion with the classical short-range piece set.|
+shatranj-14x14|Fairy Variants|Shatranj 14x14|Very large-board shatranj expansion with extended ancient armies.|
+shatranj-al-jawarhiya|Fairy Variants|Shatranj al-Jawarhiya|Historical shatranj variant associated with al-Jawarhiya's expanded army.|
+shatranj-iraq|Fairy Variants|Shatranj Iraq|Regional shatranj variant with distinctive historical setup and piece rules.|
+shatranj-turkey|Fairy Variants|Shatranj Turkey|Regional shatranj variant from the Turkish rules tradition.|
+slide-5|Fairy Variants|Slide 5|Abstract sliding-piece game on a compact board.|
+tictactoe-3d|Fairy Variants|Tic-tac-toe 3D|Three-dimensional tic-tac-toe alignment game.|
+tictactoe-4d|Fairy Variants|Tic-tac-toe 4D|Higher-dimensional tic-tac-toe alignment puzzle/game.|
+tictactoe-misere|Fairy Variants|Tic-tac-toe Misere|Misere tic-tac-toe where completing your own line loses.|
+tsatsarandi|Fairy Variants|Tsatsarandi|Regional abstract strategy game with custom movement and capture rules.|
+van-gennip-hexchess|Fairy Variants|Van Gennip Hexchess|Hexagonal chess variant from the Van Gennip family.|
+van-gennip-small-hexchess|Fairy Variants|Van Gennip Small Hexchess|Smaller-board version of Van Gennip's hex chess design.|
+whaleshogi|Fairy Variants|Whaleshogi|Shogi-inspired fairy variant with marine-themed custom pieces.|
+xxl|Fairy Variants|Xxl|Oversized fairy-chess variant with a very large board and expanded armies.|
 # Asymmetric Variants additions
 asymmetrical|Asymmetric Variants|Asymmetrical|Asymmetric variant with different armies and piece roles.|
 british-chess|Asymmetric Variants|British Chess|Asymmetric variant with different armies and piece roles.|
@@ -380,18 +380,18 @@ flank-chess|Asymmetric Variants|Flank Chess|Asymmetric variant with different ar
 hindustani|Asymmetric Variants|Hindustani|Asymmetric variant with different armies and piece roles.|
 separate-realms|Asymmetric Variants|Separate Realms|Asymmetric variant with different armies and piece roles.|
 # Rule Variants additions
-achi|Rule Variants|Achi|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+achi|Rule Variants|Achi|Three-in-a-row abstract game from the alignment and movement family.|
 all-queens-chess|Rule Variants|All Queens Chess|Abstract all-queen game focused on forming lines rather than orthodox mating play.|
-apit|Rule Variants|Apit|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-apit-sodok|Rule Variants|Apit Sodok|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+apit|Rule Variants|Apit|Abstract race or alignment game from Southeast Asian tradition.|
+apit-sodok|Rule Variants|Apit Sodok|Regional abstract strategy game related to Apit with its own win pattern.|
 ardri|Rule Variants|Ardri|Tafl surround-capture game on a 7×7 board. Defenders escort the king to the edge while attackers try to surround and capture it.|
 battleotk|Rule Variants|Battle OTK|Suffix-move variant where moves can leave transformed royal pieces behind; the browser helper needs external-engine adjudication.|
 brandub|Rule Variants|Brandub|Compact tafl surround-capture game derived from Ardri, with the king escaping to the corners.|
 checkers|Rule Variants|Checkers|Checkers / draughts family variant with diagonal movement and mandatory capture play.|
 crossway|Rule Variants|Crossway|Connection game where the goal is to link opposite sides of the board.|
-dots-boxes-15x15|Rule Variants|Dots and Boxes 15x15|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-dots-boxes-7x7|Rule Variants|Dots and Boxes 7x7|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
-dots-boxes-9x9|Rule Variants|Dots and Boxes 9x9|Objective-driven variant with non-standard win conditions from Fairy-Stockfish-X.|
+dots-boxes-15x15|Rule Variants|Dots and Boxes 15x15|Large-board Dots and Boxes territory game.|
+dots-boxes-7x7|Rule Variants|Dots and Boxes 7x7|Compact Dots and Boxes territory game.|
+dots-boxes-9x9|Rule Variants|Dots and Boxes 9x9|Medium-board Dots and Boxes territory game.|
 dris-at-talata|Rule Variants|Dris At Talata|Three-in-a-row alignment game from the draughts and abstract-strategy family.|
 english-draughts|Rule Variants|English Draughts|English draughts rules within Fairy-Stockfish-X.|
 esa-hex|Rule Variants|ESA Hex|Hex-style connection game variant on an expanded board.|
