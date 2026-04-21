@@ -1,6 +1,10 @@
 const { test, expect } = require("@playwright/test");
 const path = require("path");
 
+const FSF_X_BINARY = "/home/chris/Fairy-Stockfish-X/src/stockfish";
+const FSF_X_SRC_DIR = "/home/chris/Fairy-Stockfish-X/src";
+const FSF_X_VARIANTS = "/home/chris/Fairy-Stockfish-X/src/variants.ini";
+
 async function waitForVariantOption(page, value) {
   await page.waitForFunction(
     (targetValue) => {
@@ -40,6 +44,62 @@ async function selectVariantBySearchingTypes(page, targetValue) {
   return false;
 }
 
+async function connectExternalEngineBackend(page) {
+  page.once("dialog", (dialog) => dialog.accept("5016"));
+  await page.getByRole("button", { name: "CONNECT" }).click();
+  await page.waitForFunction(
+    () =>
+      window.fairyground &&
+      window.fairyground.BinaryEngineFeature &&
+      window.fairyground.BinaryEngineFeature.WebSocketStatus === "CONNECTED",
+    { timeout: 15000 },
+  );
+}
+
+async function loadBlackExternalEngine(page) {
+  await page.evaluate(
+    async ({ command, workingDirectory }) => {
+      const fge = window.fairyground.BinaryEngineFeature;
+      window.__pwEngineLoaded = null;
+      window.__pwEngineError = null;
+
+      const engine = new fge.Engine(
+        "playwright-fsfx-black",
+        command,
+        workingDirectory,
+        "UCI",
+        [{ name: "VariantPath", current: "<empty>" }],
+        "BLACK",
+        fge.load_engine_timeout,
+        fge.ws,
+      );
+      fge.second_engine = engine;
+
+      await new Promise((resolve) => {
+        engine.Load(
+          (name, author) => {
+            window.__pwEngineLoaded = { name, author };
+            resolve();
+          },
+          (err) => {
+            window.__pwEngineError = String(err);
+            resolve();
+          },
+        );
+      });
+    },
+    { command: FSF_X_BINARY, workingDirectory: FSF_X_SRC_DIR },
+  );
+
+  await page.waitForFunction(
+    () => window.__pwEngineLoaded !== null || window.__pwEngineError !== null,
+    { timeout: 20000 },
+  );
+
+  const engineError = await page.evaluate(() => window.__pwEngineError);
+  expect(engineError).toBeNull();
+}
+
 test("built-in variants appear on startup", async ({ page }) => {
   await page.goto("/public/advanced.html");
   await waitForVariantOption(page, "chess");
@@ -65,4 +125,71 @@ test("uploading variants.ini exposes 1d-chess", async ({ page }) => {
 
   const found = await selectVariantBySearchingTypes(page, "1d-chess");
   expect(found).toBeTruthy();
+});
+
+test("external engine can play 1d-chess after inline VariantPath apply", async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "chess");
+
+  await connectExternalEngineBackend(page);
+  await loadBlackExternalEngine(page);
+
+  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      typeof window.ffishlib.variants == "function" &&
+      window.ffishlib.variants().split(" ").includes("1d-chess"),
+    { timeout: 30000 },
+  );
+
+  await page.fill("#variantpath-inline", FSF_X_VARIANTS);
+  await page.getByRole("button", { name: "Apply VariantPath" }).click();
+  await expect(page.locator("#variantpath-status")).toContainText(
+    "Applied VariantPath to 1 loaded external engine(s)",
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "1d-chess");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "1d-chess");
+
+  const variantSupported = await page.evaluate(() => {
+    const fge = window.fairyground.BinaryEngineFeature;
+    return fge.second_engine.SetVariant("1d-chess", false);
+  });
+  expect(variantSupported).toBeTruthy();
+
+  await page.fill("#blackmovetime", "100");
+  await page.check("#playblack");
+
+  await page.evaluate(() => {
+    document.getElementById("searchmove").click();
+  });
+  await page.waitForFunction(() => {
+    const select = document.querySelector("#availablemovelist");
+    return !!select && select.options.length > 1;
+  });
+  await page.evaluate(() => {
+    const select = document.querySelector("#availablemovelist");
+    select.selectedIndex = 1;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.evaluate(() => {
+    document.getElementById("makemove").click();
+  });
+
+  await page.waitForFunction(
+    () => {
+      const moveBox = document.querySelector("#move");
+      if (!moveBox || typeof moveBox.value != "string") {
+        return false;
+      }
+      return moveBox.value.trim().split(/\s+/).filter(Boolean).length >= 2;
+    },
+    { timeout: 15000 },
+  );
 });
