@@ -515,6 +515,15 @@ function MakeMoveOnBoard(ucimove) {
   if (typeof ucimove != "string") {
     throw TypeError();
   }
+  if (typeof window.normalizeCurrentBoardMove == "function") {
+    ucimove = window.normalizeCurrentBoardMove(ucimove);
+  }
+  if (
+    typeof window.applyCurrentBoardMove == "function" &&
+    window.applyCurrentBoardMove(ucimove)
+  ) {
+    return;
+  }
   const moves = document.getElementById("move");
   const applypos = document.getElementById("set");
   moves.value = moves.value.trim() + " " + ucimove;
@@ -712,15 +721,10 @@ function IsUCIMoveSyntaxCorrect(ucimove) {
   if (numbers.length != 2) {
     return false;
   }
-  if (characters.length < 2 || characters.length > 3) {
+  if (characters.length < 2) {
     return false;
   }
-  if (characters.length == 3 && /^([a-z]{1}[0-9]+){2}[a-z+-]{1}$/.test(move)) {
-    return true;
-  } else if (characters.length == 2 && /^([a-z]{1}[0-9]+){2}$/.test(move)) {
-    return true;
-  }
-  return false;
+  return /^([a-z]+[0-9]+){2}([^,\s]+)?$/.test(move);
 }
 
 window.fairyground.BinaryEngineFeature.IsUCIMoveSyntaxCorrect =

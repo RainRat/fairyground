@@ -2922,8 +2922,12 @@
         );
       }
       if (themesloaded && positionvariantsloaded && variantsettingsloaded) {
-        seedVariantsFromVariantSettings();
-        syncVariantsFromFfish();
+        if (typeof seedVariantsFromVariantSettings == "function") {
+          seedVariantsFromVariantSettings();
+        }
+        if (typeof syncVariantsFromFfish == "function") {
+          syncVariantsFromFfish();
+        }
         document
           .getElementById("updatevarianttypedropdown")
           .dispatchEvent(new Event("click"));
@@ -3192,8 +3196,12 @@
     document.addEventListener("positionvariantsloaded", () => {
       positionvariantsloaded = true;
       if (pageloaded && themesloaded && variantsettingsloaded) {
-        seedVariantsFromVariantSettings();
-        syncVariantsFromFfish();
+        if (typeof seedVariantsFromVariantSettings == "function") {
+          seedVariantsFromVariantSettings();
+        }
+        if (typeof syncVariantsFromFfish == "function") {
+          syncVariantsFromFfish();
+        }
         document
           .getElementById("updatevarianttypedropdown")
           .dispatchEvent(new Event("click"));
@@ -3210,8 +3218,12 @@
     document.addEventListener("themesloaded", () => {
       themesloaded = true;
       if (pageloaded && positionvariantsloaded && variantsettingsloaded) {
-        seedVariantsFromVariantSettings();
-        syncVariantsFromFfish();
+        if (typeof seedVariantsFromVariantSettings == "function") {
+          seedVariantsFromVariantSettings();
+        }
+        if (typeof syncVariantsFromFfish == "function") {
+          syncVariantsFromFfish();
+        }
         document
           .getElementById("updatevarianttypedropdown")
           .dispatchEvent(new Event("click"));
@@ -3227,10 +3239,16 @@
 
     document.addEventListener("variantsettingsloaded", () => {
       variantsettingsloaded = true;
-      seedVariantsFromVariantSettings();
-      if (pageloaded && positionvariantsloaded && themesloaded) {
+      if (typeof seedVariantsFromVariantSettings == "function") {
         seedVariantsFromVariantSettings();
-        syncVariantsFromFfish();
+      }
+      if (pageloaded && positionvariantsloaded && themesloaded) {
+        if (typeof seedVariantsFromVariantSettings == "function") {
+          seedVariantsFromVariantSettings();
+        }
+        if (typeof syncVariantsFromFfish == "function") {
+          syncVariantsFromFfish();
+        }
         document
           .getElementById("updatevarianttypedropdown")
           .dispatchEvent(new Event("click"));

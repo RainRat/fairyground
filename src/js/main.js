@@ -6132,6 +6132,55 @@ function normalizeCastlingDragMove(board, move, legalmoves) {
   return candidates.length === 1 ? candidates[0] : null;
 }
 
+function normalizeCurrentBoardMove(ucimove) {
+  if (typeof ucimove != "string" || board == null) {
+    return ucimove;
+  }
+
+  const legalmoves = board
+    .legalMoves()
+    .trim()
+    .split(" ")
+    .filter((m) => m.trim().length > 0);
+
+  if (legalmoves.includes(ucimove)) {
+    return ucimove;
+  }
+
+  const [orig, dest] = extractMoveSquares(ucimove);
+  if (!orig || !dest) {
+    return ucimove;
+  }
+
+  const moveprefix = `${orig}${dest}`;
+  const matchingmove = legalmoves.find((m) => m.startsWith(moveprefix));
+  if (matchingmove) {
+    return matchingmove;
+  }
+
+  return normalizeCastlingDragMove(board, moveprefix, legalmoves) ?? ucimove;
+}
+
+window.normalizeCurrentBoardMove = normalizeCurrentBoardMove;
+
+function applyCurrentBoardMove(ucimove) {
+  if (typeof ucimove != "string" || board == null) {
+    return false;
+  }
+
+  const normalizedMove = normalizeCurrentBoardMove(ucimove);
+  const capture = isCapture(board, normalizedMove);
+
+  if (!board.push(normalizedMove)) {
+    return false;
+  }
+
+  afterMove(normalizedMove, capture, true);
+  return true;
+}
+
+window.applyCurrentBoardMove = applyCurrentBoardMove;
+
 function isCapture(board, move) {
   if (move.includes("@")) {
     return false;
@@ -6173,9 +6222,10 @@ function afterChessgroundMove(orig, dest, metadata) {
   console.log(`${move}`);
   const capture = isCapture(board, move);
 
-  //UCI notation syntax (piece move): <begin_file><begin_rank><end_file><end_rank>[[+ | -] | piece_id ][,<gating_move>]
-  //"[+ | -]" is the promotion/demotion mark for this move. If missing, it means that the piece keeps its current status. This type is used for piece advance (shogi type promotion, can be demoted)
-  //"[piece_id]" is the character to refer to the piece type, e.g. q=queen, r=rook. This type is used for pawn promotion (chess type promotion, cannot be demoted)
+  //UCI notation syntax (piece move): <begin_file><begin_rank><end_file><end_rank>[additional][,<gating_move>]
+  //"[additional]" is variant-specific suffix data. It may be a single character
+  // (promotion/demotion or promotion piece id) or a longer token for more
+  // specialized variants.
   //[,<gating_move>] is used in games which have arrowGating = true, duckGating = true, staticGating = true or pastGating = true. They all require pieceDrop = false
 
   const legalmoves = board.legalMoves().trim().split(" "); //This will set all possible moves (with promotion marks and gating moves) at current in uci format into array
@@ -6195,14 +6245,14 @@ function afterChessgroundMove(orig, dest, metadata) {
     //if it is a legal promotion/demotion move that matches the move player has made (see the syntax of uci notation, which is given above)
     if (
       move.trim() == legalmove.substring(0, move.trim().length) &&
-      legalmove.length == move.trim().length + 1
+      legalmove.length > move.trim().length
     ) {
-      if (/^[a-z+-]+$/.test(legalmove.charAt(move.trim().length))) {
-        if (
-          !possiblepromotions.includes(legalmove.charAt(move.trim().length))
-        ) {
-          possiblepromotions.push(legalmove.charAt(move.trim().length));
-        }
+      const additionalsuffix = legalmove.substring(move.trim().length);
+      if (
+        additionalsuffix.length > 0 &&
+        !possiblepromotions.includes(additionalsuffix)
+      ) {
+        possiblepromotions.push(additionalsuffix);
       }
       if (legalgate == undefined) {
         //now check the gating move
@@ -6245,16 +6295,16 @@ function afterChessgroundMove(orig, dest, metadata) {
     //if there are more than one option
     while (true) {
       choice = prompt(
-        `There are multiple chioces that you can keep/promote/demote your moved piece. They are\n${possiblepromotions}\n, where + means promote, - means demote, = means keep, letters mean target pawn promotion piece (e.g. q means pawn can promote to q piece which means queen in most times). Now please enter your choice: `,
+        `There are multiple choices for the additional move suffix. They are\n${possiblepromotions}\n, where = means no additional suffix. Now please enter your choice: `,
         "",
       );
       if (choice == null) {
         afterMove(null, false);
         return;
       }
-      if (choice.length == 0 || choice.length > 1) {
+      if (choice.length == 0) {
         alert(
-          `Bad input: ${choice} . You should enter exactly one character among ${possiblepromotions}.`,
+          `Bad input: ${choice} . You should enter one of ${possiblepromotions}.`,
         );
         continue;
       }
@@ -6262,7 +6312,7 @@ function afterChessgroundMove(orig, dest, metadata) {
         break;
       } else {
         alert(
-          `Bad input: ${choice} . You should enter exactly one character among ${possiblepromotions}.`,
+          `Bad input: ${choice} . You should enter one of ${possiblepromotions}.`,
         );
         continue;
       }
@@ -6276,7 +6326,8 @@ function afterChessgroundMove(orig, dest, metadata) {
   console.log(`final move choice: ${choice}`);
 
   if (choice == null || choice == undefined) {
-    promotion = "";
+    afterMove(null, false);
+    return;
   } else if (choice == "=") {
     promotion = "";
   } else {
@@ -6332,7 +6383,8 @@ function afterChessgroundMove(orig, dest, metadata) {
   console.log(`final gating choice: ${choice}`);
 
   if (choice == null || choice == undefined) {
-    gating = "";
+    afterMove(null, false);
+    return;
   } else if (choice == "=") {
     gating = "";
   } else {
@@ -6460,13 +6512,31 @@ function afterChessgroundDrop(piece, dest, metadata) {
   afterMove(promotion + move, false);
 }
 
-function afterMove(move, capture) {
+function afterMove(move, capture, alreadyApplied = false) {
   if (move) {
     textMoves.value = (textMoves.value + " " + move).trim();
     timerElapsePreviousPlayer = true;
   }
 
-  pSetFen.click();
+  if (!alreadyApplied) {
+    pSetFen.click();
+  } else {
+    updateChessground(true);
+    if (
+      board.isGameOver() ||
+      board.isGameOver(true) ||
+      board.isGameOver(false)
+    ) {
+      let result = getBoardResult(board);
+      if (result != "*") {
+        document.dispatchEvent(
+          new CustomEvent("gameend", {
+            detail: { result: result, reason: "normal" },
+          }),
+        );
+      }
+    }
+  }
 
   if (move) {
     if (capture) {
@@ -6688,7 +6758,7 @@ function getHiddenDroppablePiece(board) {
       continue;
     }
     movepart = moveutil.ParseUCIMove(moves[i]);
-    if (movepart[0].endsWith("@")) {
+    if (typeof movepart[0] == "string" && movepart[0].endsWith("@")) {
       if (movepart[0].charAt(0) == "+") {
         let pieceid = board.turn()
           ? movepart[0].charAt(1)
@@ -6730,7 +6800,7 @@ function displayHiddenDroppablePiece(board) {
       continue;
     }
     movepart = moveutil.ParseUCIMove(moves[i]);
-    if (movepart[0].endsWith("@")) {
+    if (typeof movepart[0] == "string" && movepart[0].endsWith("@")) {
       if (movepart[0].charAt(0) == "+") {
         let pieceid = board.turn()
           ? movepart[0].charAt(1)

@@ -217,31 +217,20 @@ export function ParseUCIMove(ucimove) {
       gatingmove,
     ];
   }
-  let additional = "";
-  let lastch = move.at(-1);
-  if (lastch == "+") {
-    additional = "+";
-    move = move.slice(0, -1);
-  } else if (lastch == "-") {
-    additional = "-";
-    move = move.slice(0, -1);
-  } else {
-    let chcode = lastch.charCodeAt(0);
-    if (chcode >= 97 && chcode <= 122) {
-      additional = lastch;
-      move = move.slice(0, -1);
-    }
-  }
   let target = SplitNumberAndLetter(move);
   let files = target.letters;
   let ranks = target.numbers;
-  if (files.length != 2) {
+  if (files.length < 2) {
     return [null, null, null, null];
   }
-  if (ranks.length != 2) {
+  if (ranks.length < 2) {
     return [null, null, null, null];
   }
-  return [files[0] + ranks[0], files[1] + ranks[1], additional, gatingmove];
+  const from = files[0] + ranks[0];
+  const to = files[1] + ranks[1];
+  const consumedLength = from.length + to.length;
+  const additional = move.slice(consumedLength);
+  return [from, to, additional, gatingmove];
 }
 
 export function ParseTextActions(Text) {
