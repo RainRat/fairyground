@@ -3797,6 +3797,7 @@ new Module().then((loadedModule) => {
   ffish = loadedModule;
   console.log("ffish.js initialized!");
   window.ffishlib = loadedModule; //Used in dev tools for debugging purposes and transfer to <script>
+  window.loadedVariantsIniNames = new Set();
   document.dispatchEvent(
     new CustomEvent("ffish:ready", {
       detail: {
@@ -3963,6 +3964,11 @@ new Module().then((loadedModule) => {
       const result = await loadVariantConfigResiliently(ini);
       ffish = result.module;
       window.ffishlib = result.module;
+      window.loadedVariantsIniNames = new Set(
+        result.loaded
+          .map((name) => name.split(":")[0].trim())
+          .filter(Boolean),
+      );
       console.log(
         "variants.ini loaded into browser helper:",
         result.loaded.length,
@@ -5981,21 +5987,33 @@ function getGameStatus(showresult) {
       result = "UNFINISHED";
     }
     if (showresult) {
-      gameResult.click();
+      if (typeof window.displayGameResult == "function") {
+        window.displayGameResult();
+      } else {
+        gameResult.click();
+      }
     }
   } else if (timeOutSide.value == 1) {
     //console.log("White time out");
     gameResult.value = "0-1";
     result = "END";
     if (showresult) {
-      gameResult.click();
+      if (typeof window.displayGameResult == "function") {
+        window.displayGameResult();
+      } else {
+        gameResult.click();
+      }
     }
   } else if (timeOutSide.value == 2) {
     //console.log("Black time out");
     gameResult.value = "1-0";
     result = "END";
     if (showresult) {
-      gameResult.click();
+      if (typeof window.displayGameResult == "function") {
+        window.displayGameResult();
+      } else {
+        gameResult.click();
+      }
     }
   } else {
     //console.log("continue");
@@ -6006,6 +6024,63 @@ function getGameStatus(showresult) {
     }
   }
   return result;
+}
+
+function getForcedExternalCustomVariantResult() {
+  const current = checkboxFischerRandom.checked
+    ? dropdownVariant.value + "960"
+    : dropdownVariant.value;
+  const isCustomVariantFromIni =
+    window.loadedVariantsIniNames instanceof Set &&
+    window.loadedVariantsIniNames.has(current);
+  const fge = window.fairyground?.BinaryEngineFeature;
+  const hasLoadedExternalPlayingEngine =
+    !!fge &&
+    [fge.first_engine, fge.second_engine]
+      .filter((engine) => engine && engine.IsLoaded && engine.IsUsing)
+      .some((engine) =>
+        Array.isArray(engine.Options)
+          ? engine.Options.some(
+              (option) =>
+                /^VariantPath$/i.test(option.name) &&
+                option.current &&
+                option.current != "<empty>",
+            )
+          : false,
+      );
+  if (!isCustomVariantFromIni || !hasLoadedExternalPlayingEngine) {
+    return null;
+  }
+  const fenText = currentBoardFen.value || getFEN(false);
+  const boardFen = typeof fenText == "string" ? fenText.split(" ")[0] : "";
+  let startFen = "";
+  try {
+    if (window.ffishlib && typeof window.ffishlib.startingFen == "function") {
+      startFen = window.ffishlib.startingFen(current) || "";
+    }
+  } catch (err) {
+    startFen = "";
+  }
+  const startBoardFen =
+    typeof startFen == "string" ? startFen.split(" ")[0] : "";
+  const startHasWhiteKing = startBoardFen.includes("K");
+  const startHasBlackKing = startBoardFen.includes("k");
+  const hasWhiteKing = boardFen.includes("K");
+  const hasBlackKing = boardFen.includes("k");
+  const browserDraw =
+    (board.isGameOver() && board.result() == "1/2-1/2") ||
+    (board.isGameOver(true) && board.result(true) == "1/2-1/2") ||
+    (board.isGameOver(false) && board.result(false) == "1/2-1/2");
+  if (!browserDraw) {
+    return null;
+  }
+  if (startHasWhiteKing && !hasWhiteKing) {
+    return "0-1";
+  }
+  if (startHasBlackKing && !hasBlackKing) {
+    return "1-0";
+  }
+  return null;
 }
 
 function resetTimer() {
@@ -6548,7 +6623,26 @@ function afterMove(move, capture, alreadyApplied = false) {
     }
   }
 
-  if (getGameStatus(false) == "END") {
+  const forcedResult = getForcedExternalCustomVariantResult();
+  if (forcedResult != null) {
+    gameResult.value = forcedResult;
+    if (typeof window.displayGameResult == "function") {
+      window.displayGameResult();
+    }
+    document.dispatchEvent(
+      new CustomEvent("gameend", {
+        detail: { result: forcedResult, reason: "normal" },
+      }),
+    );
+    soundTerminal.currentTime = 0.0;
+    soundTerminal.play();
+    recordedmultipv = 1;
+    return;
+  }
+
+  const status = getGameStatus(false);
+  if (status == "END") {
+    getGameStatus(true);
     soundTerminal.currentTime = 0.0;
     soundTerminal.play();
   } else if (
@@ -6559,6 +6653,15 @@ function afterMove(move, capture, alreadyApplied = false) {
   }
   recordedmultipv = 1;
 }
+
+window.finalizeEngineTerminalState = function () {
+  const status = getGameStatus(true);
+  if (status == "END") {
+    soundTerminal.currentTime = 0.0;
+    soundTerminal.play();
+  }
+  return status;
+};
 
 function getPgn(board) {
   if (

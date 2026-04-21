@@ -1799,6 +1799,12 @@ class Engine {
       return;
     }
     if (this.Move == "0000" || this.Move == undefined) {
+      if (
+        EnginePlaysColor(this.Color) &&
+        typeof window.finalizeEngineTerminalState == "function"
+      ) {
+        window.finalizeEngineTerminalState();
+      }
       return;
     }
     console.log(`${this.Color}: Commit move: ${this.Move}`);
