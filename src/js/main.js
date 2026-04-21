@@ -3877,7 +3877,6 @@ new Module().then((loadedModule) => {
       };
     }
 
-    let nextModule = await new Module();
     const loadedTexts = [];
     const loaded = [];
     let pending = sections.map((section) => ({
@@ -3886,7 +3885,7 @@ new Module().then((loadedModule) => {
       lastError: null,
     }));
 
-    const replayLoadedSections = async () => {
+    const rebuildLoadedModule = async () => {
       const replayModule = await new Module();
       for (const text of loadedTexts) {
         replayModule.loadVariantConfig(text);
@@ -3894,15 +3893,16 @@ new Module().then((loadedModule) => {
       return replayModule;
     };
 
+    let nextModule = await rebuildLoadedModule();
+
     while (pending.length > 0) {
       let progressed = false;
       const retry = [];
+      nextModule = await rebuildLoadedModule();
 
       for (const entry of pending) {
-        const trialModule = await replayLoadedSections();
         try {
-          trialModule.loadVariantConfig(entry.text);
-          nextModule = trialModule;
+          nextModule.loadVariantConfig(entry.text);
           loadedTexts.push(entry.text);
           loaded.push(entry.section.name);
           progressed = true;
@@ -3911,6 +3911,9 @@ new Module().then((loadedModule) => {
             ...entry,
             lastError: err instanceof Error ? err.message : String(err),
           });
+          // A failed parse can leave the module in an uncertain state, so
+          // rebuild from the known-good successfully loaded prefix only.
+          nextModule = await rebuildLoadedModule();
         }
       }
 
