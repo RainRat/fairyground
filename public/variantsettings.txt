@@ -279,69 +279,69 @@ kono|Rule Variants|Kono|Move all your pieces to the squares where your opponent'
 # Additional Fairy-Stockfish-X variants synced from current variants.ini
 # Chess Variants additions
 alterga|Chess Variants|Alterga|Chess variant played from the normal setup with altered move behavior and objectives.|
-anti-king-1|Chess Variants|Anti-King 1|Additional chess-family variant from Fairy-Stockfish-X.|
-anti-king-2|Chess Variants|Anti-King 2|Additional chess-family variant from Fairy-Stockfish-X.|
+anti-king-1|Chess Variants|Anti-King 1|Chess variant featuring anti-royal king logic and non-orthodox check objectives.|
+anti-king-2|Chess Variants|Anti-King 2|Alternative anti-royal king ruleset in the anti-king chess family.|
 balancedalternation2|Chess Variants|Balancedalternation2|Additional chess-family variant from Fairy-Stockfish-X.|
-capped-pawns|Chess Variants|Capped Pawns|Additional chess-family variant from Fairy-Stockfish-X.|
+capped-pawns|Chess Variants|Capped Pawns|Pawn movement and promotion are constrained compared with orthodox chess.|
 capture-anything|Chess Variants|Capture Anything|Rule variant that broadens what can be captured, including otherwise unusual targets.|
 checkless|Chess Variants|Checkless|Check is ignored; games are decided by direct king capture rather than orthodox checkmate.|
-chess-siberia|Chess Variants|Chess Siberia|Additional chess-family variant from Fairy-Stockfish-X.|
+chess-siberia|Chess Variants|Chess Siberia|Cold-climate themed chess variant with modified piece and pawn behavior.|
 cylinder|Chess Variants|Cylinder|Chess on a cylindrical board where the left and right edges wrap around.|
-cylinder-castling|Chess Variants|Cylinder Castling|Additional chess-family variant from Fairy-Stockfish-X.|
-demi-chess|Chess Variants|Demi Chess|Additional chess-family variant from Fairy-Stockfish-X.|
-forced-en-passant|Chess Variants|Forced En Passant|Additional chess-family variant from Fairy-Stockfish-X.|
-gadsden-toroidal|Chess Variants|Gadsden Toroidal|Additional chess-family variant from Fairy-Stockfish-X.|
-gadsden-toroidal-wrap-pawns|Chess Variants|Gadsden Toroidal Wrap Pawns|Additional chess-family variant from Fairy-Stockfish-X.|
-half-chess|Chess Variants|Half Chess|Additional chess-family variant from Fairy-Stockfish-X.|
-infiltration-danger|Chess Variants|Infiltration Danger|Additional chess-family variant from Fairy-Stockfish-X.|
+cylinder-castling|Chess Variants|Cylinder Castling|Cylindrical chess variant that preserves castling on the wrapped board.|
+demi-chess|Chess Variants|Demi Chess|Compact reduced-army chess variant on a smaller board.|
+forced-en-passant|Chess Variants|Forced En Passant|If an en passant capture is available, it must be played.|
+gadsden-toroidal|Chess Variants|Gadsden Toroidal|Toroidal chess variant in the Gadsden family with full board wraparound.|
+gadsden-toroidal-wrap-pawns|Chess Variants|Gadsden Toroidal Wrap Pawns|Toroidal Gadsden variant where pawn movement also respects board wraparound.|
+half-chess|Chess Variants|Half Chess|Short-board chess variant using a reduced army and compact setup.|
+infiltration-danger|Chess Variants|Infiltration Danger|Chess variant that changes evaluation of invasion and king safety through special rules.|
 marseillais|Chess Variants|Marseillais|Players normally make two moves per turn, subject to Marseillais chess restrictions.|
-monad|Chess Variants|Monad|Additional chess-family variant from Fairy-Stockfish-X.|
-no-castle-10|Chess Variants|No Castle 10|Additional chess-family variant from Fairy-Stockfish-X.|
-pawns|Chess Variants|Pawns|Additional chess-family variant from Fairy-Stockfish-X.|
-promotion-chess|Chess Variants|Promotion Chess|Additional chess-family variant from Fairy-Stockfish-X.|
+monad|Chess Variants|Monad|Minimal chess-family variant built around a stripped-down army and simplified goals.|
+no-castle-10|Chess Variants|No Castle 10|Larger-board chess variant where castling is disabled.|
+pawns|Chess Variants|Pawns|Pawn-only chess race and capture game.|
+promotion-chess|Chess Variants|Promotion Chess|Chess variant built around frequent or expanded promotion opportunities.|
 rifle-chess|Chess Variants|Rifle Chess|Captures are made at range: the moving piece does not occupy the captured piece's square.|
-stone-gravitation|Chess Variants|Stone Gravitation|Additional chess-family variant from Fairy-Stockfish-X.|
-strong-pawn|Chess Variants|Strong Pawn|Additional chess-family variant from Fairy-Stockfish-X.|
+stone-gravitation|Chess Variants|Stone Gravitation|Chess variant with gravity-style piece movement or settling effects.|
+strong-pawn|Chess Variants|Strong Pawn|Chess variant with enhanced pawn movement or promotion power.|
 toroidal-chess|Chess Variants|Toroidal Chess|Chess on a toroidal board where both files and ranks wrap around.|
-trapped-queens|Chess Variants|Trapped Queens|Additional chess-family variant from Fairy-Stockfish-X.|
-witch-hunting|Chess Variants|Witch Hunting|Additional chess-family variant from Fairy-Stockfish-X.|
+trapped-queens|Chess Variants|Trapped Queens|Queens start constrained or endangered, reshaping the opening around rescue and release.|
+witch-hunting|Chess Variants|Witch Hunting|Capture-oriented chess variant with special target pieces and asymmetric pressure.|
 # Makruk Variants additions
 gala|Makruk Variants|Gala|Additional Makruk-family variant from Fairy-Stockfish-X.|
 # Xiangqi Variants additions
 manzhouqi|Xiangqi Variants|Manzhouqi|Additional Xiangqi-family variant from Fairy-Stockfish-X.|
 # Fairy Variants additions
 antimatter|Fairy Variants|Antimatter|Capture effects can annihilate same-type pieces, creating highly tactical chain reactions.|
-aries|Fairy Variants|Aries|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+aries|Fairy Variants|Aries|Fairy-chess variant centered on custom piece movement and nonstandard tactical motifs.|
 battery-chess|Fairy Variants|Battery Chess|Promotion depends on pieces held in hand, tying upgrade choices to capture-and-drop economy.|
-beast-chess|Fairy Variants|Beast Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+beast-chess|Fairy Variants|Beast Chess|Fairy-chess game featuring animal-themed custom pieces and movement rules.|
 benedict|Fairy Variants|Benedict|Capturing converts the captured piece to the capturer's side instead of removing it.|
-bishop-knight-morph-factor|Fairy Variants|Bishop-Knight Morph Factor|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+bishop-knight-morph-factor|Fairy Variants|Bishop-Knight Morph Factor|Hybrid-piece variant exploring morphing or blended bishop-and-knight powers.|
 bombardment|Fairy Variants|Bombardment|Mutually explosive army game where blast rules and extinction decide the result.|
-chaturanga-al-adli|Fairy Variants|Chaturanga al-Adli|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-chaturanga-payagunda|Fairy Variants|Chaturanga Payagunda|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-compound-chess|Fairy Variants|Compound Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-constabulary-chess|Fairy Variants|Constabulary Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-crazy-cavalier|Fairy Variants|Crazy Cavalier|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-crown-prince-chess|Fairy Variants|Crown Prince Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+chaturanga-al-adli|Fairy Variants|Chaturanga al-Adli|Historical chaturanga family variant associated with al-Adli's rules tradition.|
+chaturanga-payagunda|Fairy Variants|Chaturanga Payagunda|Historical chaturanga family variant with alternative ancient piece rules.|
+compound-chess|Fairy Variants|Compound Chess|Chess variant featuring powerful compound pieces built from orthodox move combinations.|
+constabulary-chess|Fairy Variants|Constabulary Chess|Fairy-chess variant with constable-style custom pieces and unusual royal pressure.|
+crazy-cavalier|Fairy Variants|Crazy Cavalier|Drop-and-fairy-piece variant centered on cavalier-style movement.|
+crown-prince-chess|Fairy Variants|Crown Prince Chess|Fairy-chess variant that adds a crown-prince style royal or semi-royal piece.|
 dodgem|Fairy Variants|Dodgem|Abstract traffic-style game where pieces race off the board instead of capturing normally.|
-dueling-archbishops|Fairy Variants|Dueling Archbishops|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-eurasian|Fairy Variants|Eurasian|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-extramovearmageddon|Fairy Variants|Extra Move Armageddon|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-fatal-giveaway|Fairy Variants|Fatal Giveaway|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-fianchetto|Fairy Variants|Fianchetto|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-gale-15|Fairy Variants|Gale 15|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-gale-5|Fairy Variants|Gale 5|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-gale-misere|Fairy Variants|Gale Misere|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+dueling-archbishops|Fairy Variants|Dueling Archbishops|Chess variant built around the bishop-knight archbishop piece on both sides.|
+eurasian|Fairy Variants|Eurasian|Cross-cultural fairy-chess blend drawing on multiple regional rule traditions.|
+extramovearmageddon|Fairy Variants|Extra Move Armageddon|Armageddon-style variant with extra-move mechanics layered on top.|
+fatal-giveaway|Fairy Variants|Fatal Giveaway|Giveaway-style loss-objective chess with explosive or lethal fairy interactions.|
+fianchetto|Fairy Variants|Fianchetto|Variant built around unusual bishop development and flank pressure.|
+gale-15|Fairy Variants|Gale 15|Larger-board Gale connection variant.|
+gale-5|Fairy Variants|Gale 5|Compact-board Gale connection variant.|
+gale-misere|Fairy Variants|Gale Misere|Misere Gale variant where completing your own goal is a loss.|
 glinski-chess|Fairy Variants|Glinski Chess|Hexagonal chess in the Glinski tradition.|
-glinski-chess-3shift|Fairy Variants|Glinski Chess 3-Shift|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-glinski-chess-5shift|Fairy Variants|Glinski Chess 5-Shift|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-haynie-leapers|Fairy Variants|Haynie Leapers|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-hippolyta|Fairy Variants|Hippolyta|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-hp-minichess|Fairy Variants|HP Mini Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-ichess|Fairy Variants|Ichess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-jedi-chess|Fairy Variants|Jedi Chess|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-kamikaze|Fairy Variants|Kamikaze|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
-kamikaze-giveaway|Fairy Variants|Kamikaze Giveaway|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
+glinski-chess-3shift|Fairy Variants|Glinski Chess 3-Shift|Glinski-style hex chess with a shifted starting layout.|
+glinski-chess-5shift|Fairy Variants|Glinski Chess 5-Shift|Glinski-style hex chess with a larger shifted starting layout.|
+haynie-leapers|Fairy Variants|Haynie Leapers|Fairy-chess variant featuring the leaper pieces popularized in Ralph Betza and Haynie problem themes.|
+hippolyta|Fairy Variants|Hippolyta|Fairy-chess variant named for its Amazonian or queenly custom-piece theme.|
+hp-minichess|Fairy Variants|HP Mini Chess|Small-board fairy-chess variant with compressed armies and sharp tactics.|
+ichess|Fairy Variants|Ichess|Experimental fairy-chess variant with custom movement and tactical rules.|
+jedi-chess|Fairy Variants|Jedi Chess|Star-wars-inspired fairy variant with force-themed custom movement.|
+kamikaze|Fairy Variants|Kamikaze|Self-destructive fairy-chess variant where captures or moves can sacrifice the mover.|
+kamikaze-giveaway|Fairy Variants|Kamikaze Giveaway|Loss-objective variant combining kamikaze self-destruction with giveaway rules.|
 ko-app-paw-na|Fairy Variants|Ko App Paw Na|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 ko-oshi|Fairy Variants|Ko Oshi|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
 leaperhouse|Fairy Variants|Leaperhouse|Fairy-piece or custom-movement variant from Fairy-Stockfish-X.|
