@@ -117,6 +117,7 @@ This repository includes a helper script:
 ```bash
 npm run sync-custom-browser-stack -- /path/to/fairy-stockfish.wasm
 npm run debug-build
+npm run check-custom-variant-workflow -- /path/to/Fairy-Stockfish-X/src/variants.ini
 node server.js
 ```
 
@@ -132,6 +133,11 @@ The helper expects the wasm checkout to already contain:
 The `ffish.fairyground.js` file is a compatibility build for Fairyground's
 current Browserify pipeline. With newer Emscripten SDKs, the raw generated
 `ffish.js` may need a small post-process step before Fairyground can bundle it.
+
+The optional `check-custom-variant-workflow` step verifies that the expected
+browser artifacts are in place, that Fairyground's custom-variant hooks are
+present, that key FSF-X variants exist in `variantsettings.txt`, and then prints
+the remaining manual browser smoke steps for external-engine play.
 
 ## Supported Browsers
 
