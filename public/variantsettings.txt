@@ -255,7 +255,7 @@ nineholes|Rule Variants|Nine Holes|Drop and then move your pieces on the 3×3 bo
 tictacchess|Rule Variants|Tic-Tac-Chess|Drop and then move your rook, queen and king on the 3×3 board to make a three-in-a-row orthogonally or diagonally to win. Captures not allowed.|https://ludii.games/details.php?keyword=Tic-Tac-Chess
 asimplegame|Rule Variants|A Simple Game|Move your pieces on the 4×4 board to make a three-in-a-row orthogonally or diagonally to win. Captures not allowed.|https://ludii.games/details.php?keyword=A%20Simple%20Game
 alapo|Rule Variants|Alapo|Move one of your piece to the farthest rank without being captured immediately next turn to win.|https://www.chessvariants.org/small.dir/alapo.html
-allqueenschess|Rule Variants|All Queens Chess|Move your queens on the 5×5 board to make a four-in-a-row orthogonally or diagonally to win. Captures not allowed.|https://boardgamegeek.com/boardgame/34948/all-queens-chess
+allqueenschess|Rule Variants|All Queens Chess|Move queens on a 5x5 board and connect four in a row to win. Captures are not allowed.|https://boardgamegeek.com/boardgame/34948/all-queens-chess
 capturethequeen|Rule Variants|Capture the Queen|Capture the black queen with the white pieces to win as white. All draws are considered as black win.|https://www.ludii.games/details.php?keyword=Capture%20the%20Queen
 cowboys|Rule Variants|Cowboys|Move the knights and gate a wall square one kinght move away from the destination square. Stalemate your opponent to win.|https://www.zillions-of-games.com/cgi-bin/zilligames/submissions.cgi?do=show;id=237
 annexation|Rule Variants|Annexation|Othello on a non-square board.|
@@ -314,7 +314,6 @@ antimatter|Fairy Variants|Antimatter|Capture effects can annihilate same-type pi
 aries|Fairy Variants|Aries|Fairy-chess variant centered on custom piece movement and nonstandard tactical motifs.|
 battery-chess|Fairy Variants|Battery Chess|Promotion depends on pieces held in hand, tying upgrade choices to capture-and-drop economy.|
 beast-chess|Fairy Variants|Beast Chess|Fairy-chess game featuring animal-themed custom pieces and movement rules.|
-benedict|Fairy Variants|Benedict|Capturing converts the captured piece to the capturer's side instead of removing it.|
 bishop-knight-morph-factor|Fairy Variants|Bishop-Knight Morph Factor|Hybrid-piece variant exploring morphing or blended bishop-and-knight powers.|
 bombardment|Fairy Variants|Bombardment|Mutually explosive army game where blast rules and extinction decide the result.|
 chaturanga-al-adli|Fairy Variants|Chaturanga al-Adli|Historical chaturanga family variant associated with al-Adli's rules tradition.|
@@ -381,13 +380,15 @@ hindustani|Asymmetric Variants|Hindustani|Asymmetric variant with different armi
 separate-realms|Asymmetric Variants|Separate Realms|Asymmetric variant with different armies and piece roles.|
 # Rule Variants additions
 achi|Rule Variants|Achi|Three-in-a-row abstract game from the alignment and movement family.|
-all-queens-chess|Rule Variants|All Queens Chess|Abstract all-queen game focused on forming lines rather than orthodox mating play.|
-apit|Rule Variants|Apit|Abstract race or alignment game from Southeast Asian tradition.|
-apit-sodok|Rule Variants|Apit Sodok|Regional abstract strategy game related to Apit with its own win pattern.|
+andernach|Chess Variants|Andernach Chess|Capturing pieces change color after the capture, creating shifting ownership midgame.|
+antiandernach|Chess Variants|Anti-Andernach Chess|Pieces change color after non-capturing moves instead of after captures.|
 ardri|Rule Variants|Ardri|Tafl surround-capture game on a 7×7 board. Defenders escort the king to the edge while attackers try to surround and capture it.|
 battleotk|Rule Variants|Battle OTK|Suffix-move variant where moves can leave transformed royal pieces behind; the browser helper needs external-engine adjudication.|
+balancedalternation|Chess Variants|Balanced Alternation Chess|Alternating-turn chess variant where the opening move order is adjusted for balance.|
+benedictmorph|Fairy Variants|Benedict Morph|Capturing converts the captured piece to the capturer's side instead of removing it.|
 brandub|Rule Variants|Brandub|Compact tafl surround-capture game derived from Ardri, with the king escaping to the corners.|
 checkers|Rule Variants|Checkers|Checkers / draughts family variant with diagonal movement and mandatory capture play.|
+checkshogi|Shogi Variants|Check Shogi|Shogi variant with check-based royal play instead of standard try or capture goals.|
 crossway|Rule Variants|Crossway|Connection game where the goal is to link opposite sides of the board.|
 dots-boxes-15x15|Rule Variants|Dots and Boxes 15x15|Large-board Dots and Boxes territory game.|
 dots-boxes-7x7|Rule Variants|Dots and Boxes 7x7|Compact Dots and Boxes territory game.|
