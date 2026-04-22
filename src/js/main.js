@@ -4861,17 +4861,16 @@ new Module().then((loadedModule) => {
   };
 
   buttonPassMove.onclick = function () {
-    if (
-      chessground.state.movable.color == "both" ||
-      chessground.state.movable.color == undefined
-    ) {
-      return;
-    }
-    const moves = board
+    const legalMoves = board
       .legalMoves()
       .trim()
       .split(" ")
-      .filter((element) => {
+      .filter((element) => element != "");
+    if (legalMoves.includes("0000")) {
+      applyCurrentBoardMove("0000");
+      return;
+    }
+    const moves = legalMoves.filter((element) => {
         if (typeof element != "string" || element.length < 4) {
           return false;
         }
@@ -6299,6 +6298,9 @@ function applyCurrentBoardMove(ucimove) {
 window.applyCurrentBoardMove = applyCurrentBoardMove;
 
 function isCapture(board, move) {
+  if (move == "0000" || move == "") {
+    return false;
+  }
   if (move.includes("@")) {
     return false;
   }
@@ -7483,9 +7485,30 @@ function updateChessground(showresult) {
     const matchresult = lastMove.match(/[a-z]+[0-9]+/g);
     let lastMoveFrom = null;
     let lastMoveTo = null;
-    if (lastMove.includes("@")) {
+    if (lastMove == "0000" || !matchresult || matchresult.length == 0) {
+      chessground.set({
+        lastMove: undefined,
+      });
+    } else if (lastMove.includes("@")) {
       lastMoveFrom = lastMove.match(/[A-Z]+@/g)[0];
       lastMoveTo = convertSquareToChessgroundXKey(matchresult[0]);
+      if (
+        dropdownVisualEffect.value == "<DISABLED>" ||
+        isBoardSetup.checked ||
+        isAnalysis.checked ||
+        labelStm.innerText == "undefined"
+      ) {
+        chessground.set({
+          lastMove: [lastMoveFrom, lastMoveTo],
+        });
+      } else {
+        DisplayLastMoveWithVisualEffect(
+          dropdownVisualEffect.value,
+          chessground,
+          lastMoveFrom,
+          lastMoveTo,
+        );
+      }
     } else {
       lastMoveFrom = convertSquareToChessgroundXKey(matchresult[0]);
       lastMoveTo = convertSquareToChessgroundXKey(matchresult[1]);
@@ -7494,23 +7517,23 @@ function updateChessground(showresult) {
           matchresult[3],
         );
       }
-    }
-    if (
-      dropdownVisualEffect.value == "<DISABLED>" ||
-      isBoardSetup.checked ||
-      isAnalysis.checked ||
-      labelStm.innerText == "undefined"
-    ) {
-      chessground.set({
-        lastMove: [lastMoveFrom, lastMoveTo],
-      });
-    } else {
-      DisplayLastMoveWithVisualEffect(
-        dropdownVisualEffect.value,
-        chessground,
-        lastMoveFrom,
-        lastMoveTo,
-      );
+      if (
+        dropdownVisualEffect.value == "<DISABLED>" ||
+        isBoardSetup.checked ||
+        isAnalysis.checked ||
+        labelStm.innerText == "undefined"
+      ) {
+        chessground.set({
+          lastMove: [lastMoveFrom, lastMoveTo],
+        });
+      } else {
+        DisplayLastMoveWithVisualEffect(
+          dropdownVisualEffect.value,
+          chessground,
+          lastMoveFrom,
+          lastMoveTo,
+        );
+      }
     }
     buttonUndo.disabled = false;
   }

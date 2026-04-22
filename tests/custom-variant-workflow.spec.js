@@ -143,6 +143,31 @@ test("amazons is not declared drawn on startup", async ({ page }) => {
   await expect(page.locator("#gameresult")).not.toHaveValue("1/2-1/2");
 });
 
+test("pass button handles literal 0000 pass moves", async ({ page }) => {
+  await page.goto("/public/advanced.html");
+  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      typeof window.ffishlib.variants == "function" &&
+      window.ffishlib.variants().split(" ").includes("ataxx"),
+    { timeout: 30000 },
+  );
+  const found = await selectVariantBySearchingTypes(page, "ataxx");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "ataxx");
+
+  await page.fill("#fen", "7/7/7/7/7/7/6p w - - 0 1");
+  await page.fill("#move", "");
+  await page.locator("#setpos").click();
+
+  await page.evaluate(() => {
+    document.getElementById("passmove").onclick();
+  });
+
+  await expect(page.locator("#move")).toHaveValue("0000");
+});
+
 test("external engine can play 1d-chess after inline VariantPath apply", async ({
   page,
 }) => {
