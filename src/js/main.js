@@ -197,6 +197,7 @@ const engineOutput = document.getElementById("engineoutputline");
 const setPgnString = document.getElementById("pgnstring");
 const isAnalysis = document.getElementById("analysis");
 const pcheckCounts = document.getElementById("checkcounts");
+const ppointsCounts = document.getElementById("pointscounts");
 const evaluationBar = document.getElementById("evalbarprogress");
 const evalscore = document.getElementById("cp");
 const multipv = document.getElementById("multipv");
@@ -7347,6 +7348,15 @@ function updateChessground(showresult) {
   } else {
     pcheckCounts.textContent = "";
     pcheckCounts.hidden = true;
+  }
+
+  const pointsMatch = boardfenval.match(/\{(\d+)\s+(\d+)\}\s*$/);
+  if (pointsMatch) {
+    ppointsCounts.textContent = `White points: ${pointsMatch[1]} - Black points: ${pointsMatch[2]}`;
+    ppointsCounts.hidden = false;
+  } else {
+    ppointsCounts.textContent = "";
+    ppointsCounts.hidden = true;
   }
 
   if (showresult) {
