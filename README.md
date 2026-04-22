@@ -121,6 +121,13 @@ npm run check-custom-variant-workflow -- /path/to/Fairy-Stockfish-X/src/variants
 node server.js
 ```
 
+The Playwright tests can also be configured to use your local Fairy-Stockfish-X build by setting the following environment variables:
+- `FSF_X_BIN`: Path to the Fairy-Stockfish binary (e.g., `/path/to/Fairy-Stockfish-X/src/stockfish`)
+- `FSF_X_SRC`: Path to the Fairy-Stockfish source directory (e.g., `/path/to/Fairy-Stockfish-X/src`)
+- `FSF_X_VARIANTS`: Path to the `variants.ini` file (e.g., `/path/to/Fairy-Stockfish-X/src/variants.ini`)
+
+If these variables are not set, the tests will attempt to use default paths or skip tests that require external binaries.
+
 The helper expects the wasm checkout to already contain:
 
 - `src/emscripten/public/stockfish.js`

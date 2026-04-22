@@ -1,9 +1,28 @@
+const fs = require("fs");
 const { test, expect } = require("@playwright/test");
 const path = require("path");
 
-const FSF_X_BINARY = "/home/chris/Fairy-Stockfish-X/src/stockfish";
-const FSF_X_SRC_DIR = "/home/chris/Fairy-Stockfish-X/src";
-const FSF_X_VARIANTS = "/home/chris/Fairy-Stockfish-X/src/variants.ini";
+const FSF_X_BINARY = process.env.FSF_X_BIN || "./stockfish";
+const FSF_X_SRC_DIR = process.env.FSF_X_SRC || "./";
+const FSF_X_VARIANTS = process.env.FSF_X_VARIANTS || "./variants.ini";
+
+test.beforeEach(({}, testInfo) => {
+  const needsBinary =
+    testInfo.title.includes("external engine") ||
+    testInfo.title.includes("VariantPath");
+  const needsVariants =
+    testInfo.title.includes("variants.ini") ||
+    testInfo.title.includes("1d-chess") ||
+    testInfo.title.includes("ataxx") ||
+    testInfo.title.includes("pass button");
+
+  if (needsBinary && !fs.existsSync(FSF_X_BINARY)) {
+    test.skip(true, "Fairy-Stockfish-X binary not found");
+  }
+  if (needsVariants && !fs.existsSync(FSF_X_VARIANTS)) {
+    test.skip(true, "variants.ini not found");
+  }
+});
 
 async function waitForVariantOption(page, value) {
   await page.waitForFunction(
@@ -110,9 +129,7 @@ test("uploading variants.ini exposes 1d-chess", async ({ page }) => {
   await page.goto("/public/advanced.html");
   await waitForVariantOption(page, "chess");
 
-  const variantsPath = path.resolve(
-    "/home/chris/Fairy-Stockfish-X/src/variants.ini",
-  );
+  const variantsPath = path.resolve(FSF_X_VARIANTS);
   await page.setInputFiles("#variants-ini", variantsPath);
 
   await page.waitForFunction(
