@@ -5976,7 +5976,45 @@ function UpdateVariantsPositionNameDropdown() {
 
 function getGameStatus(showresult) {
   let result = "null";
-  if (board.isGameOver() || board.isGameOver(true) || board.isGameOver(false)) {
+  const isContradictoryStartingDraw = (() => {
+    if (!board) return false;
+    let legalMoveCount = 0;
+    try {
+      legalMoveCount = board
+        .legalMoves()
+        .split(" ")
+        .filter((move) => move !== "").length;
+    } catch (err) {
+      return false;
+    }
+    if (legalMoveCount === 0) return false;
+    const rawResult =
+      board.result() != "*"
+        ? board.result()
+        : board.result(true) != "*"
+          ? board.result(true)
+          : board.result(false);
+    if (rawResult != "1/2-1/2") return false;
+    const currentFenText = currentBoardFen.value || getFEN(false);
+    let startingFen = "";
+    try {
+      startingFen = checkboxFischerRandom.checked
+        ? ffish.startingFen(dropdownVariant.value + "960")
+        : ffish.startingFen(dropdownVariant.value);
+    } catch (err) {
+      startingFen = "";
+    }
+    return (
+      typeof currentFenText == "string" &&
+      typeof startingFen == "string" &&
+      currentFenText.trim() === startingFen.trim() &&
+      textMoves.value.trim().length === 0
+    );
+  })();
+  if (
+    !isContradictoryStartingDraw &&
+    (board.isGameOver() || board.isGameOver(true) || board.isGameOver(false))
+  ) {
     if (board.result() != "*") {
       gameResult.value = board.result();
       result = "END";

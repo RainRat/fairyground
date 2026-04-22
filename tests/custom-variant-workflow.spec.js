@@ -127,6 +127,22 @@ test("uploading variants.ini exposes 1d-chess", async ({ page }) => {
   expect(found).toBeTruthy();
 });
 
+test("amazons is not declared drawn on startup", async ({ page }) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "amazons");
+
+  const found = await selectVariantBySearchingTypes(page, "amazons");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "amazons");
+
+  await page.waitForFunction(
+    () => document.querySelector("#dropdown-variant")?.value === "amazons",
+    { timeout: 10000 },
+  );
+
+  await expect(page.locator("#gameresult")).not.toHaveValue("1/2-1/2");
+});
+
 test("external engine can play 1d-chess after inline VariantPath apply", async ({
   page,
 }) => {
