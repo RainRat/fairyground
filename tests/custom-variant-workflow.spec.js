@@ -1,9 +1,24 @@
+const fs = require("fs");
 const { test, expect } = require("@playwright/test");
 const path = require("path");
 
-const FSF_X_BINARY = "/home/chris/Fairy-Stockfish-X/src/stockfish";
-const FSF_X_SRC_DIR = "/home/chris/Fairy-Stockfish-X/src";
-const FSF_X_VARIANTS = "/home/chris/Fairy-Stockfish-X/src/variants.ini";
+const DEFAULT_FSF_X_SRC_DIR = path.resolve(
+  __dirname,
+  "../../Fairy-Stockfish-X/src",
+);
+const FSF_X_SRC_DIR = process.env.FSF_X_SRC || DEFAULT_FSF_X_SRC_DIR;
+const FSF_X_BINARY = process.env.FSF_X_BIN || path.join(FSF_X_SRC_DIR, "stockfish");
+const FSF_X_VARIANTS =
+  process.env.FSF_X_VARIANTS || path.join(FSF_X_SRC_DIR, "variants.ini");
+
+function skipIfMissing(filePath, label) {
+  test.skip(!fs.existsSync(filePath), `${label} not found: ${filePath}`);
+}
+
+async function uploadVariantsIni(page) {
+  skipIfMissing(FSF_X_VARIANTS, "Fairy-Stockfish-X variants.ini");
+  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+}
 
 async function waitForVariantOption(page, value) {
   await page.waitForFunction(
@@ -57,6 +72,7 @@ async function connectExternalEngineBackend(page) {
 }
 
 async function loadBlackExternalEngine(page) {
+  skipIfMissing(FSF_X_BINARY, "Fairy-Stockfish-X binary");
   await page.evaluate(
     async ({ command, workingDirectory }) => {
       const fge = window.fairyground.BinaryEngineFeature;
@@ -110,10 +126,7 @@ test("uploading variants.ini exposes 1d-chess", async ({ page }) => {
   await page.goto("/public/advanced.html");
   await waitForVariantOption(page, "chess");
 
-  const variantsPath = path.resolve(
-    "/home/chris/Fairy-Stockfish-X/src/variants.ini",
-  );
-  await page.setInputFiles("#variants-ini", variantsPath);
+  await uploadVariantsIni(page);
 
   await page.waitForFunction(
     () =>
@@ -145,7 +158,7 @@ test("amazons is not declared drawn on startup", async ({ page }) => {
 
 test("pass button handles literal 0000 pass moves", async ({ page }) => {
   await page.goto("/public/advanced.html");
-  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
       !!window.ffishlib &&
@@ -172,7 +185,7 @@ test("selecting argess resets to its black-to-move start position", async ({
   page,
 }) => {
   await page.goto("/public/advanced.html");
-  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
       !!window.ffishlib &&
@@ -195,7 +208,7 @@ test("selecting checkers resets to its custom start position", async ({
   page,
 }) => {
   await page.goto("/public/advanced.html");
-  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
       !!window.ffishlib &&
@@ -219,7 +232,7 @@ test("selecting antiminishogi starts a live game instead of immediate loss", asy
   page,
 }) => {
   await page.goto("/public/advanced.html");
-  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
       !!window.ffishlib &&
@@ -241,7 +254,7 @@ test("selecting battleotk starts a live game instead of immediate terminal state
   page,
 }) => {
   await page.goto("/public/advanced.html");
-  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
       !!window.ffishlib &&
@@ -263,7 +276,7 @@ test("annexation pass button handles 0000 in a no-move position", async ({
   page,
 }) => {
   await page.goto("/public/advanced.html");
-  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
       !!window.ffishlib &&
@@ -301,7 +314,7 @@ test("external engine can play 1d-chess after inline VariantPath apply", async (
   await connectExternalEngineBackend(page);
   await loadBlackExternalEngine(page);
 
-  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
       !!window.ffishlib &&

@@ -121,6 +121,19 @@ npm run check-custom-variant-workflow -- /path/to/Fairy-Stockfish-X/src/variants
 node server.js
 ```
 
+The Playwright smoke tests default to a sibling `../Fairy-Stockfish-X/src`
+checkout. Override these paths when testing another layout:
+
+```bash
+FSF_X_SRC=/path/to/Fairy-Stockfish-X/src \
+FSF_X_BIN=/path/to/Fairy-Stockfish-X/src/stockfish \
+FSF_X_VARIANTS=/path/to/Fairy-Stockfish-X/src/variants.ini \
+npm run test:playwright
+```
+
+Tests that need the external binary or `variants.ini` skip themselves when the
+required local file is unavailable.
+
 The helper expects the wasm checkout to already contain:
 
 - `src/emscripten/public/stockfish.js`
