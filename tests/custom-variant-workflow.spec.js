@@ -215,6 +215,50 @@ test("selecting checkers resets to its custom start position", async ({
   await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
 });
 
+test("selecting antiminishogi starts a live game instead of immediate loss", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      typeof window.ffishlib.variants == "function" &&
+      window.ffishlib.variants().split(" ").includes("antiminishogi"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "antiminishogi");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "antiminishogi");
+
+  await expect(page.locator("#label-stm")).toHaveText("white");
+  await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
+  await expect(page.locator("#gameresult")).toHaveValue("");
+});
+
+test("selecting battleotk starts a live game instead of immediate terminal state", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      typeof window.ffishlib.variants == "function" &&
+      window.ffishlib.variants().split(" ").includes("battleotk"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "battleotk");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "battleotk");
+
+  await expect(page.locator("#label-stm")).toHaveText("white");
+  await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
+  await expect(page.locator("#gameresult")).toHaveValue("");
+});
+
 test("annexation pass button handles 0000 in a no-move position", async ({
   page,
 }) => {
