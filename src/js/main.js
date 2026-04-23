@@ -4093,7 +4093,7 @@ new Module().then((loadedModule) => {
     updateInnerCoordinateColor(chessground);
 
     window.setTimeout(() => {
-      buttonReset.click();
+      buttonRestart.click();
     }, 10);
   };
 

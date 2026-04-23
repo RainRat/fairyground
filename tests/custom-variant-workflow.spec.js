@@ -212,6 +212,7 @@ test("selecting checkers resets to its custom start position", async ({
   await expect(page.locator("#currentboardfen")).toContainText(
     "1m1m1m1m/m1m1m1m1/1m1m1m1m/8/8/M1M1M1M1/1M1M1M1M/M1M1M1M1 w - - 0 1",
   );
+  await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
 });
 
 test("annexation pass button handles 0000 in a no-move position", async ({
