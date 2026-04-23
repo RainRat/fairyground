@@ -191,6 +191,29 @@ test("selecting argess resets to its black-to-move start position", async ({
   );
 });
 
+test("selecting checkers resets to its custom start position", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      typeof window.ffishlib.variants == "function" &&
+      window.ffishlib.variants().split(" ").includes("checkers"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "checkers");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "checkers");
+
+  await expect(page.locator("#label-stm")).toHaveText("white");
+  await expect(page.locator("#currentboardfen")).toContainText(
+    "1m1m1m1m/m1m1m1m1/1m1m1m1m/8/8/M1M1M1M1/1M1M1M1M/M1M1M1M1 w - - 0 1",
+  );
+});
+
 test("annexation pass button handles 0000 in a no-move position", async ({
   page,
 }) => {

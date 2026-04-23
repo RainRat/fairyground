@@ -4626,6 +4626,11 @@
 
         setVariantStylesheet(effectiveVariant);
         window.setTimeout(() => {
+          const restartButton = document.getElementById("restart");
+          if (restartButton) {
+            restartButton.click();
+            return;
+          }
           const resetButton = document.getElementById("reset");
           if (resetButton) {
             resetButton.click();
