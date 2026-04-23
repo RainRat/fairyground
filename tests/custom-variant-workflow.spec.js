@@ -7,7 +7,8 @@ const DEFAULT_FSF_X_SRC_DIR = path.resolve(
   "../../Fairy-Stockfish-X/src",
 );
 const FSF_X_SRC_DIR = process.env.FSF_X_SRC || DEFAULT_FSF_X_SRC_DIR;
-const FSF_X_BINARY = process.env.FSF_X_BIN || path.join(FSF_X_SRC_DIR, "stockfish");
+const FSF_X_BINARY =
+  process.env.FSF_X_BIN || path.join(FSF_X_SRC_DIR, "stockfish");
 const FSF_X_VARIANTS =
   process.env.FSF_X_VARIANTS || path.join(FSF_X_SRC_DIR, "variants.ini");
 
