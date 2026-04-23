@@ -3044,9 +3044,15 @@ function showWallSquares() {
 
 function getUsedPieceID(variant, isfischerrandom) {
   console.log("Now testing piece set! You may see a lot of warnings here.");
-  let validPieceID = pieces.filter((element) => {
-    return ffish.validateFen(element, variant, isfischerrandom) != -10;
-  });
+  let validPieceID = [];
+  window.suppressExpectedFfishProbeErrors = true;
+  try {
+    validPieceID = pieces.filter((element) => {
+      return ffish.validateFen(element, variant, isfischerrandom) != -10;
+    });
+  } finally {
+    window.suppressExpectedFfishProbeErrors = false;
+  }
   return validPieceID;
 }
 
@@ -3794,7 +3800,31 @@ function getBoardResult(board) {
 }
 
 import Module from "ffish-es6";
-new Module().then((loadedModule) => {
+
+function isExpectedFfishProbeError(message) {
+  return (
+    message.startsWith("Invalid piece character:") ||
+    message.startsWith("Invalid promoted piece:") ||
+    message.startsWith("Invalid number of ranks.")
+  );
+}
+
+function printFfishError(message) {
+  const text = String(message || "");
+  if (
+    window.suppressExpectedFfishProbeErrors &&
+    isExpectedFfishProbeError(text)
+  ) {
+    return;
+  }
+  console.error(text);
+}
+
+function createFfishModule() {
+  return new Module({ printErr: printFfishError });
+}
+
+createFfishModule().then((loadedModule) => {
   ffish = loadedModule;
   console.log("ffish.js initialized!");
   window.ffishlib = loadedModule; //Used in dev tools for debugging purposes and transfer to <script>
@@ -3842,8 +3872,7 @@ new Module().then((loadedModule) => {
     flushCurrent();
 
     return {
-      preamble:
-        preamble.length > 0 ? preamble.join("\n").trimEnd() + "\n" : "",
+      preamble: preamble.length > 0 ? preamble.join("\n").trimEnd() + "\n" : "",
       sections,
     };
   };
@@ -3853,12 +3882,15 @@ new Module().then((loadedModule) => {
     const mkSectionText = (sectionText) =>
       preamble.length > 0 ? preamble + sectionText : sectionText;
 
-    const fullModule = await new Module();
+    const fullModule = await createFfishModule();
     try {
       fullModule.loadVariantConfig(ini);
       return {
         module: fullModule,
-        loaded: sections.length > 0 ? sections.map((section) => section.name) : ["<full-file>"],
+        loaded:
+          sections.length > 0
+            ? sections.map((section) => section.name)
+            : ["<full-file>"],
         failed: [],
       };
     } catch (err) {
@@ -3869,7 +3901,7 @@ new Module().then((loadedModule) => {
     }
 
     if (sections.length == 0) {
-      const module = await new Module();
+      const module = await createFfishModule();
       module.loadVariantConfig(ini);
       return {
         module,
@@ -3887,7 +3919,7 @@ new Module().then((loadedModule) => {
     }));
 
     const rebuildLoadedModule = async () => {
-      const replayModule = await new Module();
+      const replayModule = await createFfishModule();
       for (const text of loadedTexts) {
         replayModule.loadVariantConfig(text);
       }
@@ -3969,9 +4001,7 @@ new Module().then((loadedModule) => {
       ffish = result.module;
       window.ffishlib = result.module;
       window.loadedVariantsIniNames = new Set(
-        result.loaded
-          .map((name) => name.split(":")[0].trim())
-          .filter(Boolean),
+        result.loaded.map((name) => name.split(":")[0].trim()).filter(Boolean),
       );
       console.log(
         "variants.ini loaded into browser helper:",
@@ -4871,17 +4901,17 @@ new Module().then((loadedModule) => {
       return;
     }
     const moves = legalMoves.filter((element) => {
-        if (typeof element != "string" || element.length < 4) {
-          return false;
-        }
-        const files = element.split(/[0-9]+/).filter((elem1) => {
-          return elem1 != "";
-        });
-        const ranks = element.split(/[a-z]+/).filter((elem1) => {
-          return elem1 != "";
-        });
-        return files[0] == files[1] && ranks[0] == ranks[1];
+      if (typeof element != "string" || element.length < 4) {
+        return false;
+      }
+      const files = element.split(/[0-9]+/).filter((elem1) => {
+        return elem1 != "";
       });
+      const ranks = element.split(/[a-z]+/).filter((elem1) => {
+        return elem1 != "";
+      });
+      return files[0] == files[1] && ranks[0] == ranks[1];
+    });
     if (moves == null || moves.length == 0) {
       alert(
         "Cannot pass your turn currently. This variant does not allow passing or there are restrictions on passing your turn.",
@@ -6242,7 +6272,9 @@ function normalizeCastlingDragMove(board, move, legalmoves) {
       return false;
     }
     const legalDirection = Math.sign(legalFile - origFile);
-    return legalDirection === dragDirection && Math.abs(legalFile - origFile) > 1;
+    return (
+      legalDirection === dragDirection && Math.abs(legalFile - origFile) > 1
+    );
   });
 
   return candidates.length === 1 ? candidates[0] : null;
@@ -6690,7 +6722,9 @@ function afterMove(move, capture, alreadyApplied = false) {
     soundTerminal.currentTime = 0.0;
     soundTerminal.play();
   } else if (
-    typeof board.isRealCheck === "function" ? board.isRealCheck() : board.isCheck()
+    typeof board.isRealCheck === "function"
+      ? board.isRealCheck()
+      : board.isCheck()
   ) {
     soundCheck.currentTime = 0.0;
     soundCheck.play();
