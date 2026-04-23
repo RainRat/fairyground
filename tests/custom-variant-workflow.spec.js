@@ -168,6 +168,29 @@ test("pass button handles literal 0000 pass moves", async ({ page }) => {
   await expect(page.locator("#move")).toHaveValue("0000");
 });
 
+test("selecting argess resets to its black-to-move start position", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      typeof window.ffishlib.variants == "function" &&
+      window.ffishlib.variants().split(" ").includes("argess"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "argess");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "argess");
+
+  await expect(page.locator("#label-stm")).toHaveText("black");
+  await expect(page.locator("#currentboardfen")).toContainText(
+    "rppppnbk/6qb/7n/7p/PPPP3p/RNPP3p/BQNP3p/KBRP3r b - - 0 1",
+  );
+});
+
 test("external engine can play 1d-chess after inline VariantPath apply", async ({
   page,
 }) => {

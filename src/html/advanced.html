@@ -4625,6 +4625,12 @@
         resetTimer();
 
         setVariantStylesheet(effectiveVariant);
+        window.setTimeout(() => {
+          const resetButton = document.getElementById("reset");
+          if (resetButton) {
+            resetButton.click();
+          }
+        }, 10);
       };
 
       let derivedStateBoard = null;
