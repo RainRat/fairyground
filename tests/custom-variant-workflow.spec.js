@@ -191,6 +191,37 @@ test("selecting argess resets to its black-to-move start position", async ({
   );
 });
 
+test("annexation pass button handles 0000 in a no-move position", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await page.setInputFiles("#variants-ini", path.resolve(FSF_X_VARIANTS));
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      typeof window.ffishlib.variants == "function" &&
+      window.ffishlib.variants().split(" ").includes("annexation"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "annexation");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "annexation");
+
+  const noMoveSequence =
+    "P@d4 P@e4 P@d5 P@c4 P@d6 P@f7 P@f4 P@d7 P@g5 P@f3 P@c7 P@h4 P@e7 P@e8 P@g7 P@c6 P@e9 P@f8 P@b5 P@b7 P@g8 P@a4 P@c5 P@b6 P@f2 P@g2 P@d8 P@f1 P@h6 P@g6 P@a6 P@f10 P@d3 P@i6 P@h5 P@g9 P@j7 P@i5 P@f9 P@b4 P@j5 P@g3 P@a7 P@i7 P@d9 P@d2 P@e3 P@i4 P@e2 P@a5 P@g1 P@g10 P@h7 P@d10 P@j4 P@e1 P@g4 P@j6 P@e10";
+
+  await page.fill("#fen", "");
+  await page.fill("#move", noMoveSequence);
+  await page.locator("#setpos").click();
+
+  await page.evaluate(() => {
+    document.getElementById("passmove").onclick();
+  });
+
+  await expect(page.locator("#move")).toHaveValue(`${noMoveSequence} 0000`);
+});
+
 test("external engine can play 1d-chess after inline VariantPath apply", async ({
   page,
 }) => {
