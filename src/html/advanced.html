@@ -4729,10 +4729,54 @@
           }
 
           stm.innerText = tmpboard.turn() ? "white" : "black";
+          const isContradictoryStartingDraw = (() => {
+            let legalMoveCount = 0;
+            try {
+              legalMoveCount = tmpboard
+                .legalMoves()
+                .split(" ")
+                .filter((move) => move !== "").length;
+            } catch (err) {
+              return false;
+            }
+            if (legalMoveCount === 0) return false;
+            const rawResult =
+              tmpboard.result() != "*"
+                ? tmpboard.result()
+                : tmpboard.result(true) != "*"
+                  ? tmpboard.result(true)
+                  : tmpboard.result(false);
+            if (rawResult != "1/2-1/2" || moves.length != 0) {
+              return false;
+            }
+            const normalizedBaseFen =
+              typeof baseFen == "string" ? baseFen.trim() : "";
+            let startingFen = "";
+            try {
+              startingFen = window.ffishlib.startingFen(variant) || "";
+            } catch (err) {
+              startingFen = "";
+            }
+            const normalizedStartingFen =
+              typeof startingFen == "string" ? startingFen.trim() : "";
+            if (currentBoardFen.length > 0 || fen.length > 0) {
+              return (
+                normalizedStartingFen.length > 0 &&
+                normalizedBaseFen === normalizedStartingFen
+              );
+            }
+            return (
+              normalizedStartingFen.length === 0 ||
+              normalizedBaseFen === normalizedStartingFen
+            );
+          })();
           if (
-            tmpboard.isGameOver() ||
-            tmpboard.isGameOver(true) ||
-            tmpboard.isGameOver(false)
+            !isContradictoryStartingDraw &&
+            (
+              tmpboard.isGameOver() ||
+              tmpboard.isGameOver(true) ||
+              tmpboard.isGameOver(false)
+            )
           ) {
             gamestatus.innerText = "END";
           } else {

@@ -6024,7 +6024,8 @@ function getGameStatus(showresult) {
           ? board.result(true)
           : board.result(false);
     if (rawResult != "1/2-1/2") return false;
-    const currentFenText = currentBoardFen.value || getFEN(false);
+    const explicitFenText = (currentBoardFen.value || "").trim();
+    const currentFenText = explicitFenText || getFEN(false);
     let startingFen = "";
     try {
       startingFen = checkboxFischerRandom.checked
@@ -6033,11 +6034,21 @@ function getGameStatus(showresult) {
     } catch (err) {
       startingFen = "";
     }
+    if (textMoves.value.trim().length !== 0) return false;
+    if (typeof currentFenText != "string" || typeof startingFen != "string") {
+      return false;
+    }
+    const normalizedCurrentFen = currentFenText.trim();
+    const normalizedStartingFen = startingFen.trim();
+    if (explicitFenText.length > 0) {
+      return (
+        normalizedStartingFen.length > 0 &&
+        normalizedCurrentFen === normalizedStartingFen
+      );
+    }
     return (
-      typeof currentFenText == "string" &&
-      typeof startingFen == "string" &&
-      currentFenText.trim() === startingFen.trim() &&
-      textMoves.value.trim().length === 0
+      normalizedStartingFen.length === 0 ||
+      normalizedCurrentFen === normalizedStartingFen
     );
   })();
   if (
