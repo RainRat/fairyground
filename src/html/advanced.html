@@ -2926,22 +2926,7 @@
         );
       }
       if (themesloaded && positionvariantsloaded && variantsettingsloaded) {
-        if (typeof seedVariantsFromVariantSettings == "function") {
-          seedVariantsFromVariantSettings();
-        }
-        if (typeof syncVariantsFromFfish == "function") {
-          syncVariantsFromFfish();
-        }
-        document
-          .getElementById("updatevarianttypedropdown")
-          .dispatchEvent(new Event("click"));
-        console.log(
-          "%c Variant System %c READY %c Variant subsystem is ready.",
-          "color: #fff; background: #5f5f5f",
-          "color: #fff; background: #4bc729",
-          "",
-        );
-        variantsystemready = true;
+        initializeVariantSystemIfReady();
       }
       document
         .getElementById("dropdown-variant")
@@ -3200,71 +3185,53 @@
     document.addEventListener("positionvariantsloaded", () => {
       positionvariantsloaded = true;
       if (pageloaded && themesloaded && variantsettingsloaded) {
-        if (typeof seedVariantsFromVariantSettings == "function") {
-          seedVariantsFromVariantSettings();
-        }
-        if (typeof syncVariantsFromFfish == "function") {
-          syncVariantsFromFfish();
-        }
-        document
-          .getElementById("updatevarianttypedropdown")
-          .dispatchEvent(new Event("click"));
-        console.log(
-          "%c Variant System %c READY %c Variant subsystem is ready.",
-          "color: #fff; background: #5f5f5f",
-          "color: #fff; background: #4bc729",
-          "",
-        );
-        variantsystemready = true;
+        initializeVariantSystemIfReady();
       }
     });
 
     document.addEventListener("themesloaded", () => {
       themesloaded = true;
       if (pageloaded && positionvariantsloaded && variantsettingsloaded) {
-        if (typeof seedVariantsFromVariantSettings == "function") {
-          seedVariantsFromVariantSettings();
-        }
-        if (typeof syncVariantsFromFfish == "function") {
-          syncVariantsFromFfish();
-        }
-        document
-          .getElementById("updatevarianttypedropdown")
-          .dispatchEvent(new Event("click"));
-        console.log(
-          "%c Variant System %c READY %c Variant subsystem is ready.",
-          "color: #fff; background: #5f5f5f",
-          "color: #fff; background: #4bc729",
-          "",
-        );
-        variantsystemready = true;
+        initializeVariantSystemIfReady();
       }
     });
 
     document.addEventListener("variantsettingsloaded", () => {
       variantsettingsloaded = true;
+      if (pageloaded && positionvariantsloaded && themesloaded) {
+        initializeVariantSystemIfReady();
+      } else if (typeof seedVariantsFromVariantSettings == "function") {
+        seedVariantsFromVariantSettings();
+      }
+    });
+
+    function initializeVariantSystemIfReady() {
+      if (
+        variantsystemready ||
+        !pageloaded ||
+        !positionvariantsloaded ||
+        !themesloaded ||
+        !variantsettingsloaded
+      ) {
+        return;
+      }
       if (typeof seedVariantsFromVariantSettings == "function") {
         seedVariantsFromVariantSettings();
       }
-      if (pageloaded && positionvariantsloaded && themesloaded) {
-        if (typeof seedVariantsFromVariantSettings == "function") {
-          seedVariantsFromVariantSettings();
-        }
-        if (typeof syncVariantsFromFfish == "function") {
-          syncVariantsFromFfish();
-        }
-        document
-          .getElementById("updatevarianttypedropdown")
-          .dispatchEvent(new Event("click"));
-        console.log(
-          "%c Variant System %c READY %c Variant subsystem is ready.",
-          "color: #fff; background: #5f5f5f",
-          "color: #fff; background: #4bc729",
-          "",
-        );
-        variantsystemready = true;
+      if (typeof syncVariantsFromFfish == "function") {
+        syncVariantsFromFfish();
       }
-    });
+      if (typeof updateVariantTypeDropdown == "function") {
+        updateVariantTypeDropdown();
+      }
+      console.log(
+        "%c Variant System %c READY %c Variant subsystem is ready.",
+        "color: #fff; background: #5f5f5f",
+        "color: #fff; background: #4bc729",
+        "",
+      );
+      variantsystemready = true;
+    }
 
     document.addEventListener("uilayoutchange", (event) => {
       if (currentthemeobj instanceof UIThemeObject) {
@@ -4322,6 +4289,8 @@
 
       let variants = [];
       let varianttypes = [];
+      let selectedVariant = "";
+      let selectedVariantType = "";
 
       let engine_list = [];
 
@@ -6373,8 +6342,10 @@
           syncVariantsFromFfish();
         }
         const varianttypedropdown = $("#dropdown-varianttype");
-        const selectedtype =
-          varianttypedropdown[varianttypedropdown.selectedIndex].value;
+        selectedVariantType = varianttypedropdown
+          ? varianttypedropdown.value
+          : selectedVariantType;
+        const selectedtype = selectedVariantType;
         if (selectedtype == "") {
           variants = [""].concat(allvariants);
         } else if (selectedtype == "<|NC|>") {
@@ -6394,6 +6365,9 @@
           });
           variants = tmpvariants;
         }
+        if (!variants.includes(selectedVariant)) {
+          selectedVariant = "";
+        }
         m.redraw();
       };
 
@@ -6402,6 +6376,9 @@
           syncVariantsFromFfish();
         }
         const varianttypedropdown = $("#dropdown-varianttype");
+        const previousSelectedType = varianttypedropdown
+          ? varianttypedropdown.value
+          : selectedVariantType;
         varianttypes = [];
         let varianttypevariantcount = [[], []];
         variantsettings[1].forEach((val) => {
@@ -6431,7 +6408,14 @@
           }
         });
         varianttypes.sort();
-        varianttypedropdown.selectedIndex = 0;
+        selectedVariantType = ["", "<|NC|>"].concat(varianttypes).includes(
+          previousSelectedType,
+        )
+          ? previousSelectedType
+          : "";
+        if (varianttypedropdown) {
+          varianttypedropdown.value = selectedVariantType;
+        }
         changing_variant_type = false;
         updateVariantDropdown();
         m.redraw();
@@ -7237,9 +7221,11 @@
               "select#dropdown-varianttype",
               {
                 disabled: !is_ready || review_mode || board_setup_mode,
+                value: selectedVariantType,
                 title:
                   "The available types or categories of variants are shown in this list. Select one to see available variants in next dropdown.",
                 onchange: (e) => {
+                  selectedVariantType = e.currentTarget.value;
                   changing_variant_type = false;
                   updateVariantDropdown();
                 },
@@ -7259,9 +7245,11 @@
               "select#dropdown-variant",
               {
                 disabled: !is_ready || review_mode || board_setup_mode,
+                value: selectedVariant,
                 title:
                   "The available variants of the selected type are shown in this list. Select one to start a game of that variant.",
                 onchange: (e) => {
+                  selectedVariant = e.currentTarget.value;
                   if (changing_variant_type) {
                     updateVariantDropdown();
                     changing_variant_type = false;

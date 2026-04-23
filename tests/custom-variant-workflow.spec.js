@@ -141,21 +141,33 @@ test("uploading variants.ini exposes 1d-chess", async ({ page }) => {
   expect(found).toBeTruthy();
 });
 
-test("amazons is not declared drawn on startup", async ({ page }) => {
-  await page.goto("/public/advanced.html");
-  await waitForVariantOption(page, "amazons");
+const CONTRADICTORY_STARTING_DRAW_VARIANTS = [
+  "amazons",
+  "cowboys",
+  "isolation",
+  "isolation7x7",
+  "snailtrail",
+];
 
-  const found = await selectVariantBySearchingTypes(page, "amazons");
-  expect(found).toBeTruthy();
-  await page.selectOption("#dropdown-variant", "amazons");
+for (const variant of CONTRADICTORY_STARTING_DRAW_VARIANTS) {
+  test(`${variant} is not declared drawn on startup`, async ({ page }) => {
+    await page.goto("/public/advanced.html");
+    await waitForVariantOption(page, variant);
 
-  await page.waitForFunction(
-    () => document.querySelector("#dropdown-variant")?.value === "amazons",
-    { timeout: 10000 },
-  );
+    const found = await selectVariantBySearchingTypes(page, variant);
+    expect(found).toBeTruthy();
+    await page.selectOption("#dropdown-variant", variant);
 
-  await expect(page.locator("#gameresult")).not.toHaveValue("1/2-1/2");
-});
+    await page.waitForFunction(
+      (selectedVariant) =>
+        document.querySelector("#dropdown-variant")?.value === selectedVariant,
+      variant,
+      { timeout: 10000 },
+    );
+
+    await expect(page.locator("#gameresult")).not.toHaveValue("1/2-1/2");
+  });
+}
 
 test("pass button handles literal 0000 pass moves", async ({ page }) => {
   await page.goto("/public/advanced.html");
@@ -271,6 +283,35 @@ test("selecting battleotk starts a live game instead of immediate terminal state
   await expect(page.locator("#label-stm")).toHaveText("white");
   await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
   await expect(page.locator("#gameresult")).toHaveValue("");
+});
+
+test("selecting 6x6atom after variants.ini upload keeps the page live", async ({
+  page,
+}) => {
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(String(error)));
+
+  await page.goto("/public/advanced.html");
+  await uploadVariantsIni(page);
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      typeof window.ffishlib.variants == "function" &&
+      window.ffishlib.variants().split(" ").includes("6x6atom"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "6x6atom");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "6x6atom");
+
+  await expect(page.locator("#label-stm")).toHaveText("white");
+  await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
+  await expect(page.locator("#gameresult")).toHaveValue("");
+  await expect(page.locator("#currentboardfen")).toContainText(
+    "rbqkbr/pppppp/6/6/PPPPPP/RBQKBR w - - 0 1",
+  );
+  expect(pageErrors).toEqual([]);
 });
 
 test("annexation pass button handles 0000 in a no-move position", async ({
