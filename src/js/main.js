@@ -3883,15 +3883,36 @@ createFfishModule().then((loadedModule) => {
       preamble.length > 0 ? preamble + sectionText : sectionText;
 
     const fullModule = await createFfishModule();
+    const builtinVariantNames = new Set(
+      fullModule
+        .variants()
+        .split(/\s+/)
+        .map((name) => name.trim())
+        .filter(Boolean),
+    );
+    const sectionsToLoad = sections.filter(
+      (section) => !builtinVariantNames.has(section.name),
+    );
+    const duplicateSections = sections.filter((section) =>
+      builtinVariantNames.has(section.name),
+    );
     try {
-      fullModule.loadVariantConfig(ini);
+      if (sectionsToLoad.length === sections.length) {
+        fullModule.loadVariantConfig(ini);
+      } else if (sectionsToLoad.length > 0) {
+        const filteredIni =
+          (preamble.length > 0 ? preamble : "") +
+          sectionsToLoad.map((section) => section.text).join("\n");
+        fullModule.loadVariantConfig(filteredIni);
+      }
       return {
         module: fullModule,
         loaded:
-          sections.length > 0
-            ? sections.map((section) => section.name)
-            : ["<full-file>"],
+          sectionsToLoad.length > 0
+            ? sectionsToLoad.map((section) => section.name)
+            : [],
         failed: [],
+        skipped: duplicateSections.map((section) => section.name),
       };
     } catch (err) {
       console.warn(
@@ -3912,7 +3933,7 @@ createFfishModule().then((loadedModule) => {
 
     const loadedTexts = [];
     const loaded = [];
-    let pending = sections.map((section) => ({
+    let pending = sectionsToLoad.map((section) => ({
       section,
       text: mkSectionText(section.text),
       lastError: null,

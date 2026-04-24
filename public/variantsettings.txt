@@ -75,6 +75,8 @@ antiatomic|Chess Variants|Anti Atomic Chess|Hybrid variant of atomic and giveawa
 atomiczh|Chess Variants|Atomic Crazy House|Hybrid of atomic and crazyhouse.|
 misere|Chess Variants|Misere Chess|Get checkmated to win.|
 dragonfly|Chess Variants|Dragonfly|Simplified Crazyhouse with no queens on 7×7 board. Pawns cannot be dropped and cannot double step.|https://en.wikipedia.org/wiki/Dragonfly_(chess_variant)
+hostage|Chess Variants|Hostage Chess|Captured pieces are sent to prison and can be exchanged back into play.|https://en.wikipedia.org/wiki/Hostage_chess
+recycle|Chess Variants|Recycle Chess|Crazyhouse-like variant where self-capture is allowed.|https://brainking.com/en/GameRules?tp=9
 kamikazerooks|Chess Variants|Kamikaze Rooks|Lose all your rooks to win.|
 racingchess|Chess Variants|Racing Chess|Win by campmate (moving the king to the farthest rank). No checks allowed.|
 twokings2|Chess Variants|Two Kings v2|A new king replaces the queen. Any of the kings being checkmated is a loss.|
@@ -371,6 +373,7 @@ van-gennip-hexchess|Fairy Variants|Van Gennip Hexchess|Hexagonal chess variant f
 van-gennip-small-hexchess|Fairy Variants|Van Gennip Small Hexchess|Smaller-board version of Van Gennip's hex chess design.|
 whaleshogi|Fairy Variants|Whaleshogi|Shogi-inspired fairy variant with marine-themed custom pieces.|
 xxl|Fairy Variants|Xxl|Oversized fairy-chess variant with a very large board and expanded armies.|
+musketeer|Fairy Variants|Musketeer Chess|Seirawan-inspired gating variant with additional custom pieces and preselected gate squares.|https://musketeerchess.net
 # Asymmetric Variants additions
 asymmetrical|Asymmetric Variants|Asymmetrical|Asymmetric variant with different armies and piece roles.|
 british-chess|Asymmetric Variants|British Chess|Asymmetric variant with different armies and piece roles.|
