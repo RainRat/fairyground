@@ -4917,36 +4917,22 @@ createFfishModule().then((loadedModule) => {
       .trim()
       .split(" ")
       .filter((element) => element != "");
-    if (legalMoves.includes("0000")) {
-      applyCurrentBoardMove("0000");
-      return;
-    }
-    const moves = legalMoves.filter((element) => {
-      if (typeof element != "string" || element.length < 4) {
-        return false;
-      }
-      const files = element.split(/[0-9]+/).filter((elem1) => {
-        return elem1 != "";
-      });
-      const ranks = element.split(/[a-z]+/).filter((elem1) => {
-        return elem1 != "";
-      });
-      return files[0] == files[1] && ranks[0] == ranks[1];
-    });
-    if (moves == null || moves.length == 0) {
+    const passMove = getPassMove(legalMoves);
+    if (!passMove) {
       alert(
         "Cannot pass your turn currently. This variant does not allow passing or there are restrictions on passing your turn.",
       );
       return;
     }
-    const passmove = {
-      orig: moves[0].match(/[a-z]+[0-9]+/g)[0],
-      dest: moves[0].match(/[a-z]+[0-9]+/g)[1],
-    };
-    if (passmove.orig == null || passmove.dest == null) {
+    if (passMove == "0000") {
+      applyCurrentBoardMove(passMove);
       return;
     }
-    afterChessgroundMove(passmove.orig, passmove.dest, {
+    const passmove = passMove.match(/[a-z]+[0-9]+/g) ?? [];
+    if (passmove.length < 2) {
+      return;
+    }
+    afterChessgroundMove(passmove[0], passmove[1], {
       premove: false,
       ctrlKey: false,
       holdTime: 0,
@@ -4958,6 +4944,51 @@ createFfishModule().then((loadedModule) => {
       predrop: false,
     });
   };
+
+  function getPassMove(legalMoves) {
+    const moves = Array.isArray(legalMoves) ? legalMoves : [];
+    if (moves.includes("0000")) {
+      return "0000";
+    }
+    const passMoves = moves.filter((element) => {
+      if (typeof element != "string" || element.length < 4) {
+        return false;
+      }
+      const squares = element.trim().split(",")[0].match(/[a-z]+[0-9]+/g);
+      return (
+        Array.isArray(squares) &&
+        squares.length >= 2 &&
+        squares[0] == squares[1]
+      );
+    });
+    return passMoves.length > 0 ? passMoves[0] : null;
+  }
+
+  function getForcedPassMove(legalMoves) {
+    const moves = Array.isArray(legalMoves) ? legalMoves : [];
+    if (moves.length == 0) {
+      return null;
+    }
+    if (moves.includes("0000")) {
+      return moves.length == 1 ? "0000" : null;
+    }
+    const passMoves = moves.filter((element) => {
+      if (typeof element != "string" || element.length < 4) {
+        return false;
+      }
+      const squares = element.trim().split(",")[0].match(/[a-z]+[0-9]+/g);
+      return (
+        Array.isArray(squares) &&
+        squares.length >= 2 &&
+        squares[0] == squares[1]
+      );
+    });
+    return passMoves.length == moves.length && passMoves.length > 0
+      ? passMoves[0]
+      : null;
+  }
+
+  window.getForcedPassMove = getForcedPassMove;
 
   buttonPlaceWall.onclick = function () {
     if (

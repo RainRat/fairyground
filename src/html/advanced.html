@@ -4287,6 +4287,39 @@
       let engine_match_game_list = [];
       let timer;
 
+      window.maybeAutoPassTurn = () => {
+        if (!during_play || typeof board == "undefined" || board == null) {
+          return false;
+        }
+        if (typeof window.getForcedPassMove != "function") {
+          return false;
+        }
+        const legalMoves = board
+          .legalMoves()
+          .trim()
+          .split(" ")
+          .filter((move) => move != "");
+        const passMove = window.getForcedPassMove(legalMoves);
+        if (!passMove) {
+          return false;
+        }
+        setTimeout(() => {
+          if (!during_play || typeof board == "undefined" || board == null) {
+            return;
+          }
+          const currentLegalMoves = board
+            .legalMoves()
+            .trim()
+            .split(" ")
+            .filter((move) => move != "");
+          const currentPassMove = window.getForcedPassMove(currentLegalMoves);
+          if (currentPassMove == passMove) {
+            applyCurrentBoardMove(passMove);
+          }
+        }, 0);
+        return true;
+      };
+
       let variants = [];
       let varianttypes = [];
       let selectedVariant = "";
@@ -4791,6 +4824,12 @@
           stockfish.postMessage(`position startpos moves ${moves}`);
         }
         syncDerivedPositionState();
+        if (
+          typeof window.maybeAutoPassTurn == "function" &&
+          window.maybeAutoPassTurn()
+        ) {
+          return;
+        }
         const stm = $("#label-stm").innerText;
         if (fge.WebSocketStatus == "CONNECTED") {
           if (fge.analysis_engine) {
