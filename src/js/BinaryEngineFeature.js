@@ -700,31 +700,12 @@ function IsUCIMoveSyntaxCorrect(ucimove) {
     }
     let piecetype = parts[0];
     let dest = parts[1];
-    if (/^\+?[A-Z]{1}$/.test(piecetype) && /^[a-z]{1}[0-9]+$/.test(dest)) {
-      if (piecetype.length == 2 && /[a-z+-]/.test(piecetype.charAt(0))) {
-        return true;
-      } else if (piecetype.length == 1) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
+    return (
+      /^\+?[A-Za-z](?:[!'"])?$/.test(piecetype) &&
+      /^[a-z]{1}[0-9]+$/.test(dest)
+    );
   }
-  let numbers = move.split(/[a-z]{1}/).filter((val) => {
-    return val != "";
-  });
-  let characters = move.split(/[0-9]+/).filter((val) => {
-    return val != "";
-  });
-  if (numbers.length != 2) {
-    return false;
-  }
-  if (characters.length < 2) {
-    return false;
-  }
-  return /^([a-z]+[0-9]+){2}([^,\s]+)?$/.test(move);
+  return /^([a-z]+[0-9]+){2}(?:[a-zA-Z](?:[!'"])?|[+\-csx])?$/.test(move);
 }
 
 window.fairyground.BinaryEngineFeature.IsUCIMoveSyntaxCorrect =

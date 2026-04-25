@@ -141,6 +141,32 @@ test("uploading variants.ini exposes 1d-chess", async ({ page }) => {
   expect(found).toBeTruthy();
 });
 
+test("UCI move validator rejects malformed suffix garbage", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "chess");
+
+  const results = await page.evaluate(() => {
+    const fge = window.fairyground.BinaryEngineFeature;
+    return {
+      plain: fge.IsUCIMoveSyntaxCorrect("e2e4"),
+      promotion: fge.IsUCIMoveSyntaxCorrect("e7e8q"),
+      drop: fge.IsUCIMoveSyntaxCorrect("N@a1"),
+      garbage: fge.IsUCIMoveSyntaxCorrect("e2e4xyz123"),
+      extra: fge.IsUCIMoveSyntaxCorrect("a10b11++++"),
+    };
+  });
+
+  expect(results).toEqual({
+    plain: true,
+    promotion: true,
+    drop: true,
+    garbage: false,
+    extra: false,
+  });
+});
+
 const CONTRADICTORY_STARTING_DRAW_VARIANTS = [
   "amazons",
   "cowboys",

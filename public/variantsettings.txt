@@ -359,6 +359,7 @@ rugby|Fairy Variants|Rugby|Ball-carrying objective game built on chess movement 
 sacrifice|Fairy Variants|Sacrifice|Variant that rewards or requires material sacrifice as a core tactical theme.|
 saxun|Fairy Variants|Saxun|Historical or regional fairy variant with custom movement conventions.|
 setup-chess|Fairy Variants|Setup Chess|Players place their armies from a large reserve before normal play begins.|
+spell-chess|Fairy Variants|Spell Chess|Chess with potion-driven freeze and jump effects layered onto the standard board.|
 shatranj-12x12|Fairy Variants|Shatranj 12x12|Large-board shatranj expansion with the classical short-range piece set.|
 shatranj-14x14|Fairy Variants|Shatranj 14x14|Very large-board shatranj expansion with extended ancient armies.|
 shatranj-al-jawarhiya|Fairy Variants|Shatranj al-Jawarhiya|Historical shatranj variant associated with al-Jawarhiya's expanded army.|
