@@ -6067,7 +6067,7 @@ function getGameStatus(showresult) {
           ? board.result(true)
           : board.result(false);
     if (rawResult != "1/2-1/2") return false;
-    const explicitFenText = (currentBoardFen.value || "").trim();
+    const explicitFenText = (currentBoardFen.textContent || "").trim();
     const currentFenText = explicitFenText || getFEN(false);
     let startingFen = "";
     try {
@@ -6171,7 +6171,7 @@ function getForcedExternalCustomVariantResult() {
   if (!isCustomVariantFromIni || !hasLoadedExternalPlayingEngine) {
     return null;
   }
-  const fenText = currentBoardFen.value || getFEN(false);
+  const fenText = currentBoardFen.textContent || getFEN(false);
   const boardFen = typeof fenText == "string" ? fenText.split(" ")[0] : "";
   let startFen = "";
   try {

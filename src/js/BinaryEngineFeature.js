@@ -54,7 +54,7 @@
       }
     }
   }
-  const moveNumber = parseInt(fen_list.at(-1));
+  const moveNumber = parseInt(fen_list[fen_list.length - 1], 10);
   if (!Number.isNaN(moveNumber)) {
     sfen[3] = moveNumber.toString();
   } else {
