@@ -4314,7 +4314,12 @@
             .filter((move) => move != "");
           const currentPassMove = window.getForcedPassMove(currentLegalMoves);
           if (currentPassMove == passMove) {
-            applyCurrentBoardMove(passMove);
+            if (typeof window.applyCurrentBoardMove == "function") {
+              const applied = window.applyCurrentBoardMove(passMove);
+              if (applied && typeof window.syncAfterForcedPassMove == "function") {
+                window.syncAfterForcedPassMove();
+              }
+            }
           }
         }, 0);
         return true;

@@ -195,7 +195,7 @@ for (const variant of CONTRADICTORY_STARTING_DRAW_VARIANTS) {
   });
 }
 
-test("pass button handles literal 0000 pass moves", async ({ page }) => {
+test("forced pass moves resync the engine", async ({ page }) => {
   await page.goto("/public/advanced.html");
   await uploadVariantsIni(page);
   await page.waitForFunction(
@@ -209,13 +209,39 @@ test("pass button handles literal 0000 pass moves", async ({ page }) => {
   expect(found).toBeTruthy();
   await page.selectOption("#dropdown-variant", "ataxx");
 
+  await page.waitForFunction(
+    () => !!window.stockfish && typeof window.stockfish.postMessage == "function",
+    { timeout: 30000 },
+  );
+  await page.evaluate(() => {
+    const originalPostMessage = window.stockfish.postMessage.bind(
+      window.stockfish,
+    );
+    window.__pwPassMessages = [];
+    window.stockfish.postMessage = (message) => {
+      window.__pwPassMessages.push(String(message));
+      return originalPostMessage(message);
+    };
+  });
+
   await page.fill("#fen", "7/7/7/7/7/7/6p w - - 0 1");
   await page.fill("#move", "");
   await page.locator("#setpos").click();
 
   await page.evaluate(() => {
+    window.__pwPassMessages = [];
+  });
+  await page.evaluate(() => {
     document.getElementById("passmove").onclick();
   });
+
+  await page.waitForFunction(
+    () =>
+      Array.isArray(window.__pwPassMessages) &&
+      window.__pwPassMessages.some((message) => message.startsWith("position ")) &&
+      window.__pwPassMessages.some((message) => message.includes("moves 0000")),
+    { timeout: 10000 },
+  );
 
   await expect(page.locator("#move")).toHaveValue("0000");
 });

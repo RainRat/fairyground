@@ -3796,6 +3796,13 @@ function getBoardResult(board) {
       result = board.result(false);
     }
   }
+  if (result == "*" || board !== window.board) {
+    return result;
+  }
+  const forcedResult = getForcedExternalCustomVariantResult();
+  if (forcedResult != null) {
+    return forcedResult;
+  }
   return result;
 }
 
@@ -4924,25 +4931,9 @@ createFfishModule().then((loadedModule) => {
       );
       return;
     }
-    if (passMove == "0000") {
-      applyCurrentBoardMove(passMove);
-      return;
+    if (applyCurrentBoardMove(passMove)) {
+      syncAfterForcedPassMove();
     }
-    const passmove = passMove.match(/[a-z]+[0-9]+/g) ?? [];
-    if (passmove.length < 2) {
-      return;
-    }
-    afterChessgroundMove(passmove[0], passmove[1], {
-      premove: false,
-      ctrlKey: false,
-      holdTime: 0,
-      captured: {
-        role: null,
-        color: null,
-        promoted: false,
-      },
-      predrop: false,
-    });
   };
 
   function getPassMove(legalMoves) {
@@ -6107,14 +6098,9 @@ function getGameStatus(showresult) {
     !isContradictoryStartingDraw &&
     (board.isGameOver() || board.isGameOver(true) || board.isGameOver(false))
   ) {
-    if (board.result() != "*") {
-      gameResult.value = board.result();
-      result = "END";
-    } else if (board.result(true) != "*") {
-      gameResult.value = board.result(true);
-      result = "END";
-    } else if (board.result(false) != "*") {
-      gameResult.value = board.result(false);
+    const boardResult = getBoardResult(board);
+    if (boardResult != "*") {
+      gameResult.value = boardResult;
       result = "END";
     } else {
       gameResult.value = "Unterminated";
@@ -6391,6 +6377,17 @@ function applyCurrentBoardMove(ucimove) {
 }
 
 window.applyCurrentBoardMove = applyCurrentBoardMove;
+
+function syncAfterForcedPassMove() {
+  window.setTimeout(() => {
+    const setPosition = document.getElementById("set");
+    if (setPosition) {
+      setPosition.click();
+    }
+  }, 0);
+}
+
+window.syncAfterForcedPassMove = syncAfterForcedPassMove;
 
 function isCapture(board, move) {
   if (move == "0000" || move == "") {
@@ -6760,23 +6757,6 @@ function afterMove(move, capture, alreadyApplied = false) {
       soundMove.currentTime = 0.0;
       soundMove.play();
     }
-  }
-
-  const forcedResult = getForcedExternalCustomVariantResult();
-  if (forcedResult != null) {
-    gameResult.value = forcedResult;
-    if (typeof window.displayGameResult == "function") {
-      window.displayGameResult();
-    }
-    document.dispatchEvent(
-      new CustomEvent("gameend", {
-        detail: { result: forcedResult, reason: "normal" },
-      }),
-    );
-    soundTerminal.currentTime = 0.0;
-    soundTerminal.play();
-    recordedmultipv = 1;
-    return;
   }
 
   const status = getGameStatus(false);
