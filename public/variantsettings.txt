@@ -333,9 +333,9 @@ fianchetto|Fairy Variants|Fianchetto|Variant built around unusual bishop develop
 gale-15|Fairy Variants|Gale 15|Larger-board Gale connection variant.|
 gale-5|Fairy Variants|Gale 5|Compact-board Gale connection variant.|
 gale-misere|Fairy Variants|Gale Misere|Misere Gale variant where completing your own goal is a loss.|
-glinski-chess|Fairy Variants|Glinski Chess|Hexagonal chess in the Glinski tradition.|
-glinski-chess-3shift|Fairy Variants|Glinski Chess 3-Shift|Glinski-style hex chess with a shifted starting layout.|
-glinski-chess-5shift|Fairy Variants|Glinski Chess 5-Shift|Glinski-style hex chess with a larger shifted starting layout.|
+glinski-chess|Fairy Variants|Glinski Chess|Hexagonal chess in the Glinski tradition.||true
+glinski-chess-3shift|Fairy Variants|Glinski Chess 3-Shift|Glinski-style hex chess with a shifted starting layout.||true
+glinski-chess-5shift|Fairy Variants|Glinski Chess 5-Shift|Glinski-style hex chess with a larger shifted starting layout.||true
 haynie-leapers|Fairy Variants|Haynie Leapers|Fairy-chess variant featuring the leaper pieces popularized in Ralph Betza and Haynie problem themes.|
 hippolyta|Fairy Variants|Hippolyta|Fairy-chess variant named for its Amazonian or queenly custom-piece theme.|
 hp-minichess|Fairy Variants|HP Mini Chess|Small-board fairy-chess variant with compressed armies and sharp tactics.|
@@ -348,7 +348,7 @@ ko-oshi|Fairy Variants|Ko Oshi|Push-and-position fairy variant with custom movem
 leaperhouse|Fairy Variants|Leaperhouse|Crazyhouse-style variant where dropped or promoted material emphasizes leaper pieces.|
 lewthwaite-swap|Fairy Variants|Lewthwaite Swap|Abstract variant in the Lewthwaite family with swapping or relocation mechanics.|
 little-trio|Fairy Variants|Little Trio|Compact fairy-chess game with a very small army and tactical custom movement.|
-mccooey-chess|Fairy Variants|Mccooey Chess|Hexagonal chess in the McCooey tradition.|
+mccooey-chess|Fairy Variants|Mccooey Chess|Hexagonal chess in the McCooey tradition.||true
 monster|Fairy Variants|Monster|Asymmetric fairy-chess battle with a reduced royal side facing a full orthodox army.|
 oshi|Fairy Variants|Oshi|Push-based abstract game where forceful displacement matters as much as capture.|
 progressive|Fairy Variants|Progressive|Players make progressively longer move sequences on each turn.|
@@ -370,8 +370,8 @@ tictactoe-3d|Fairy Variants|Tic-tac-toe 3D|Three-dimensional tic-tac-toe alignme
 tictactoe-4d|Fairy Variants|Tic-tac-toe 4D|Higher-dimensional tic-tac-toe alignment puzzle/game.|
 tictactoe-misere|Fairy Variants|Tic-tac-toe Misere|Misere tic-tac-toe where completing your own line loses.|
 tsatsarandi|Fairy Variants|Tsatsarandi|Regional abstract strategy game with custom movement and capture rules.|
-van-gennip-hexchess|Fairy Variants|Van Gennip Hexchess|Hexagonal chess variant from the Van Gennip family.|
-van-gennip-small-hexchess|Fairy Variants|Van Gennip Small Hexchess|Smaller-board version of Van Gennip's hex chess design.|
+van-gennip-hexchess|Fairy Variants|Van Gennip Hexchess|Hexagonal chess variant from the Van Gennip family.||true
+van-gennip-small-hexchess|Fairy Variants|Van Gennip Small Hexchess|Smaller-board version of Van Gennip's hex chess design.||true
 whaleshogi|Fairy Variants|Whaleshogi|Shogi-inspired fairy variant with marine-themed custom pieces.|
 xxl|Fairy Variants|Xxl|Oversized fairy-chess variant with a very large board and expanded armies.|
 musketeer|Fairy Variants|Musketeer Chess|Seirawan-inspired gating variant with additional custom pieces and preselected gate squares.|https://musketeerchess.net
@@ -386,6 +386,7 @@ separate-realms|Asymmetric Variants|Separate Realms|Asymmetric variant with diff
 achi|Rule Variants|Achi|Three-in-a-row abstract game from the alignment and movement family.|
 andernach|Chess Variants|Andernach Chess|Capturing pieces change color after the capture, creating shifting ownership midgame.|
 antiandernach|Chess Variants|Anti-Andernach Chess|Pieces change color after non-capturing moves instead of after captures.|
+superandernach|Chess Variants|Super-Andernach Chess|Andernach-family chess where pieces change color after both capturing and non-capturing moves.|
 ardri|Rule Variants|Ardri|Tafl surround-capture game on a 7×7 board. Defenders escort the king to the edge while attackers try to surround and capture it.|
 battleotk|Rule Variants|Battle OTK|Suffix-move variant where moves can leave transformed royal pieces behind; the browser helper needs external-engine adjudication.|
 balancedalternation|Chess Variants|Balanced Alternation Chess|Alternating-turn chess variant where the opening move order is adjusted for balance.|
@@ -399,11 +400,11 @@ dots-boxes-7x7|Rule Variants|Dots and Boxes 7x7|Compact Dots and Boxes territory
 dots-boxes-9x9|Rule Variants|Dots and Boxes 9x9|Medium-board Dots and Boxes territory game.|
 dris-at-talata|Rule Variants|Dris At Talata|Three-in-a-row alignment game from the draughts and abstract-strategy family.|
 english-draughts|Rule Variants|English Draughts|English draughts rules within Fairy-Stockfish-X.|
-esa-hex|Rule Variants|ESA Hex|Hex-style connection game variant on an expanded board.|
+esa-hex|Rule Variants|ESA Hex|Hex-style connection game variant on an expanded board.||true
 fart-5x5|Rule Variants|Fart 5x5|Small-board abstract placement and connection game.|
 fart-7x7|Rule Variants|Fart 7x7|Larger-board version of the abstract Fart connection game.|
 gomoku|Rule Variants|Gomoku|Five-in-a-row connection game.|
-grand-hexachess|Rule Variants|Grand Hexachess|Large hexagonal chess variant.|
+grand-hexachess|Rule Variants|Grand Hexachess|Large hexagonal chess variant.||true
 groups|Rule Variants|Groups|Connection variant focused on forming a single connected group of pieces.|
 groups-fixed|Rule Variants|Groups Fixed|Fixed-start connection variant focused on forming a single connected group of pieces.|
 groups-jump-setup|Rule Variants|Groups Jump Setup|Setup connection variant with jumping pieces and a group-connection objective.|
@@ -413,10 +414,10 @@ groups-queen-jump-setup|Rule Variants|Groups Queen Jump Setup|Setup connection v
 groups-queen-setup|Rule Variants|Groups Queen Setup|Setup connection variant using queen-like movement and a group-connection objective.|
 groups-setup|Rule Variants|Groups Setup|Setup connection variant focused on forming a single connected group of pieces.|
 hasami|Rule Variants|Hasami|Custodial capture game where pieces are sandwiched orthogonally between enemy men.|
-hex|Rule Variants|Hex|Connection game played on a hex board.|
-hex-10x10|Rule Variants|Hex 10x10|10×10 Hex connection game.|
-hex-16x16|Rule Variants|Hex 16x16|16×16 Hex connection game.|
-hex-7x7|Rule Variants|Hex 7x7|7×7 Hex connection game.|
+hex|Rule Variants|Hex|Connection game played on a hex board.||true
+hex-10x10|Rule Variants|Hex 10x10|10×10 Hex connection game.||true
+hex-16x16|Rule Variants|Hex 16x16|16×16 Hex connection game.||true
+hex-7x7|Rule Variants|Hex 7x7|7×7 Hex connection game.||true
 hnefatafl|Rule Variants|Hnefatafl|Large tafl surround-capture game with asymmetric forces and king escape play.|
 kharebga|Rule Variants|Kharebga|Custodial capture game from the alquerque family.|
 kharebga-7x7|Rule Variants|Kharebga 7x7|7×7 version of the custodial capture game Kharebga.|
@@ -427,16 +428,19 @@ konobi|Rule Variants|Konobi|Connection-oriented abstract game from the same fami
 kopano|Rule Variants|Kopano|Connection and territory game from the modern abstract-strategy family.|
 large-pond|Rule Variants|Large Pond|Larger pond-family variant from Fairy-Stockfish-X.|
 linesofaction|Rule Variants|Linesofaction|Connection game where the goal is to join all of your pieces into a single connected group.|
+linesofaction-draw|Rule Variants|Lines of Action Draw|Lines of Action variant where simultaneous connection is scored as a draw rather than a win for the mover.|
 maak-yek|Rule Variants|Maak Yek|Thai alignment game where players aim to form a winning line of pieces.|
 mandala|Rule Variants|Mandala|Abstract connection game with region-based placement and enclosure goals.|
-minihexchess|Rule Variants|Mini Hexchess|Chess-style play on a compact hex board.|
+minihexchess|Rule Variants|Mini Hexchess|Chess-style play on a compact hex board.||true
 mini-pond|Rule Variants|Mini Pond|Smaller pond-family variant from Fairy-Stockfish-X.|
-misere-hex|Rule Variants|Misere Hex|Hex where completing your own connection is a loss.|
+misere-hex|Rule Variants|Misere Hex|Hex where completing your own connection is a loss.||true
 neutreeko|Rule Variants|Neutreeko|Players try to align three pieces in a row on a sparse abstract board.|
 old-hnefatafl|Rule Variants|Old Hnefatafl|Historical tafl-style surround-capture variant with king escape play.|
 pathway|Rule Variants|Pathway|Connection game where players build a continuous route across the board.|
 pond|Rule Variants|Pond|Rule-driven pond-family variant from Fairy-Stockfish-X.|
+pousse|Rule Variants|Pousse|Connection game where players insert stones from the board edge, pushing whole rows or columns and trying to form a line.|
 royal-race|Rule Variants|Royal Race|Race variant with royal pieces aiming for the goal zone rather than checkmate.|
+seega|Rule Variants|Seega|Traditional Egyptian custodial-capture game where players first place pieces, then capture by sandwiching enemy pieces orthogonally.|
 tablut|Rule Variants|Tablut|Classic 9×9 tafl game. Attackers surround the king while defenders try to escape with it.|
 tablut-corner-escape|Rule Variants|Tablut Corner Escape|Tablut variant where the king escapes to the corners instead of the edge.|
 tablut-throne-adjacent-strong|Rule Variants|Tablut Throne-Adjacent Strong|Tablut variant with stronger king capture rules near the throne.|
@@ -444,7 +448,7 @@ tawlbwrdd|Rule Variants|Tawlbwrdd|Welsh tafl variant with surround-capture play 
 toot-otto|Rule Variants|Toot Otto|Connect-style word game where players try to spell TOOT or OTTO with drops.|
 troll|Rule Variants|Troll|Abstract objective game with non-orthodox win conditions and movement rules.|
 villagers|Rule Variants|Villagers|Rule-driven variant from Fairy-Stockfish-X.|
-y|Rule Variants|Y|Connection game played on a Y-shaped board.|
+y|Rule Variants|Y|Connection game played on a Y-shaped board.||true
 
 # Not Supported Variants: Variants that have two boards. (e.g. Bughouse, Alice Chess)
 bughouse|(not supported)|Bughouse Chess|Team work chess where 4 players play on 2 boards in teams of 2. Captured pieces on one board are passed on to the teammate on the other board, who then has the option of dropping these pieces on their board.|https://en.wikipedia.org/wiki/Bughouse_chess

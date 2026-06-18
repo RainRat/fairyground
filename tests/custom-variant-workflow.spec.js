@@ -463,3 +463,202 @@ test("external engine can play 1d-chess after inline VariantPath apply", async (
     { timeout: 15000 },
   );
 });
+
+test("Y accepts a pocket drop on a visible hex", async ({ page }) => {
+  await page.goto("/public/advanced.html");
+  await uploadVariantsIni(page);
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      window.ffishlib.variants().split(" ").includes("y"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "y");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "y");
+
+  const geometry = await page.evaluate(() => {
+    const board = document.querySelector(
+      "#chessground-container-div cg-board",
+    );
+    const pocketPiece = document.querySelector("#pocket-top piece.p-piece");
+    const bounds = board.getBoundingClientRect();
+    const pieceBounds = pocketPiece.getBoundingClientRect();
+    const radius = 36;
+    const hexWidth = Math.sqrt(3) * radius;
+    const padding = 6;
+    const svgWidth =
+      padding * 2 + hexWidth + 9 * hexWidth + 9 * (hexWidth / 2);
+    const svgHeight = padding * 2 + radius * 2 + 9 * (radius * 1.5);
+    const scale = bounds.width / svgWidth;
+    const renderedTop = (bounds.height - svgHeight * scale) / 2;
+
+    return {
+      source: {
+        x: pieceBounds.x + pieceBounds.width / 2,
+        y: pieceBounds.y + pieceBounds.height / 2,
+      },
+      target: {
+        x:
+          bounds.x +
+          (padding + hexWidth / 2 + 9 * hexWidth) * scale,
+        y:
+          bounds.y +
+          renderedTop +
+          (padding + radius) * scale,
+      },
+    };
+  });
+
+  await page.mouse.move(geometry.source.x, geometry.source.y);
+  await page.mouse.down();
+  await page.mouse.move(geometry.target.x, geometry.target.y, { steps: 10 });
+  await page.mouse.up();
+
+  await expect(page.locator("#move")).toHaveValue("P@j10");
+  await expect(page.locator("#label-stm")).toHaveText("white");
+  await expect(page.locator("#gameresult")).toHaveValue("");
+});
+
+test("Y does not adjudicate an interior three-stone line as a win", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await uploadVariantsIni(page);
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      window.ffishlib.variants().split(" ").includes("y"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "y");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "y");
+
+  await page.fill("#fen", "");
+  await page.fill("#move", "P@h6 P@g4 P@g6 P@h3 P@i6");
+  await page.locator("#setpos").click();
+
+  await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
+  await expect(page.locator("#gameresult")).toHaveValue("");
+  await page.evaluate(() => document.getElementById("searchmove").click());
+  await page.waitForFunction(
+    () => document.querySelector("#availablemovelist").options.length - 1 === 50,
+  );
+});
+
+test("minihex external Black returns the turn to White", async ({ page }) => {
+  test.setTimeout(60000);
+
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "chess");
+  await connectExternalEngineBackend(page);
+  await loadBlackExternalEngine(page);
+  await uploadVariantsIni(page);
+
+  await page.fill("#variantpath-inline", FSF_X_VARIANTS);
+  await page.getByRole("button", { name: "Apply VariantPath" }).click();
+  await page.waitForFunction(
+    () => {
+      const engine =
+        window.fairyground?.BinaryEngineFeature?.second_engine;
+      return (
+        engine &&
+        engine.IsLoaded &&
+        !engine.IsLoading &&
+        engine.Variants.includes("minihexchess")
+      );
+    },
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "minihexchess");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "minihexchess");
+  expect(
+    await page.evaluate(() =>
+      window.fairyground.BinaryEngineFeature.second_engine.SetVariant(
+        "minihexchess",
+        false,
+      ),
+    ),
+  ).toBeTruthy();
+
+  await page.fill("#blackmovetime", "200");
+  await page.check("#playblack");
+  await page.evaluate(() => document.getElementById("searchmove").click());
+  await page.waitForFunction(() =>
+    Array.from(document.querySelector("#availablemovelist").options).some(
+      (option) => option.value === "c3d4",
+    ),
+  );
+  await page.evaluate(() => {
+    const select = document.querySelector("#availablemovelist");
+    const option = Array.from(select.options).find(
+      (entry) => entry.value === "c3d4",
+    );
+    select.selectedIndex = option.index;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    document.getElementById("makemove").click();
+  });
+
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector("#move")
+        .value.trim()
+        .split(/\s+/)
+        .filter(Boolean).length >= 2,
+    { timeout: 15000 },
+  );
+
+  await expect(page.locator("#move")).toHaveValue(/^c3d4 /);
+  await expect(page.locator("#label-stm")).toHaveText("white");
+  await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
+  await expect(page.locator("#gameresult")).toHaveValue("");
+});
+
+test("minihex allows the checked king to escape to c3", async ({ page }) => {
+  test.setTimeout(60000);
+
+  await page.goto("/public/advanced.html");
+  await uploadVariantsIni(page);
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      window.ffishlib.variants().split(" ").includes("minihexchess"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "minihexchess");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "minihexchess");
+
+  await page.fill("#fen", "");
+  await page.fill("#move", "c3d4 g6d5");
+  await page.locator("#setpos").click();
+
+  await expect(page.locator("#gamestatus")).toHaveText("PLAYING_WHITE");
+  await expect(page.locator("#gameresult")).toHaveValue("");
+  await page.evaluate(() => document.getElementById("searchmove").click());
+  await page.waitForFunction(() =>
+    Array.from(document.querySelector("#availablemovelist").options).some(
+      (option) => option.value === "b2c3",
+    ),
+  );
+
+  await page.evaluate(() => {
+    const select = document.querySelector("#availablemovelist");
+    const option = Array.from(select.options).find(
+      (entry) => entry.value === "b2c3",
+    );
+    select.selectedIndex = option.index;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    document.getElementById("makemove").click();
+  });
+
+  await expect(page.locator("#move")).toHaveValue("c3d4 g6d5 b2c3");
+  await expect(page.locator("#label-stm")).toHaveText("black");
+});

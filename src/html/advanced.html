@@ -2542,6 +2542,7 @@
     let themes = [[], [], []];
     let themenames = [[], []];
     let variantsettings = [[], [], [], [], []];
+    window.variantsettingsHexBoard = new Set();
     let allvariants = [];
     let uithemes = [[], []];
     let currentthemeobj = null;
@@ -3554,6 +3555,7 @@
     const LoadVariantSettings = (side, clientdata) => {
       function StartLoad(data, dispatchevent) {
         if (typeof data == "string") {
+          window.variantsettingsHexBoard = new Set();
           let rawText = data
             .replace(/\r\n/g, "\n")
             .replace(/\r/g, "\n")
@@ -3565,7 +3567,7 @@
               continue;
             }
             variantdescriptionitem = rawText[i].split("|");
-            if (variantdescriptionitem.length != 5) {
+            if (variantdescriptionitem.length != 5 && variantdescriptionitem.length != 6) {
               console.warn(
                 `At line ${i + 1} in variantsettings.txt: Syntax error.`,
               );
@@ -3600,6 +3602,12 @@
             variantsettings[2].push(variantdescriptionitem[2]);
             variantsettings[3].push(variantdescriptionitem[3]);
             variantsettings[4].push(variantdescriptionitem[4]);
+            if (
+              variantdescriptionitem.length == 6 &&
+              variantdescriptionitem[5].trim().toLowerCase() == "true"
+            ) {
+              window.variantsettingsHexBoard.add(variantdescriptionitem[0]);
+            }
           }
           //console.log(variantsettings);
         } else {
