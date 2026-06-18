@@ -7,6 +7,7 @@ import * as moveutil from "./move.js";
 import * as pgnutil from "./pgn.js";
 import * as imageutil from "./image.js";
 import * as themeutil from "./chessgroundtheme.js";
+import * as hexboardutil from "./hexboard.js";
 
 const divMain = document.getElementsByTagName("main")[0];
 const variantsIni = document.getElementById("variants-ini");
@@ -1928,6 +1929,13 @@ function initBoard(variant) {
     opacity: 1,
     lineWidth: 10,
   };
+  const dimensions = getDimensions();
+  hexboardutil.applyHexBoardLayout(chessgroundContainerEl, dimensions);
+  hexboardutil.applyHexBoardLayout(chessgroundMiniContainerEl, dimensions);
+  hexboardutil.installHexBoardAlignment(chessground);
+  hexboardutil.installHexBoardAlignment(chessground_mini);
+  themedetector.SetBoardShape(dimensions.hexBoard ? "hexboard" : "");
+  themedetector.SetBoardDimensions(dimensions.width, dimensions.height);
 
   // Spacebar to play current best engine move (analysis mode)
   document.addEventListener("keydown", function (ev) {
@@ -2101,6 +2109,7 @@ function redrawChessground(customFEN) {
     pocketBottomEl.classList.remove("no-inital-pocket-piece");
   }
   updateInnerCoordinateColor(chessground);
+  hexboardutil.installHexBoardAlignment(chessground);
 }
 
 function updateInnerCoordinateColor(chessground) {
@@ -3769,9 +3778,16 @@ function getDimensions() {
     return {
       width: 8,
       height: 8,
+      hexBoard: false,
     };
   }
-  const fenBoard = board.fen().split(" ")[0];
+  const dimensions = getDimensionsFromFen(board.fen());
+  dimensions.hexBoard = hexboardutil.isHexBoardVariant(board.variant());
+  return dimensions;
+}
+
+function getDimensionsFromFen(fen) {
+  const fenBoard = fen.split(" ")[0];
   const ranks = fenBoard.split("/").length;
   const lastRank = fenBoard.split("/")[0].replace(/[^0-9a-z*]/gi, "");
   let files = lastRank.length;
@@ -3784,6 +3800,7 @@ function getDimensions() {
   return {
     width: files,
     height: ranks,
+    hexBoard: false,
   };
 }
 
@@ -3828,7 +3845,7 @@ function printFfishError(message) {
 }
 
 function createFfishModule() {
-  return new Module({ printErr: printFfishError });
+  return Module({ printErr: printFfishError, stdin: () => null });
 }
 
 createFfishModule().then((loadedModule) => {
@@ -4125,8 +4142,11 @@ createFfishModule().then((loadedModule) => {
     chessgroundMiniContainerEl.classList.toggle(
       `board${newDimensions["width"]}x${newDimensions["height"]}`,
     );
+    hexboardutil.applyHexBoardLayout(chessgroundContainerEl, newDimensions);
+    hexboardutil.applyHexBoardLayout(chessgroundMiniContainerEl, newDimensions);
 
     themedetector.SetBoardDimensions(newDimensions.width, newDimensions.height);
+    themedetector.SetBoardShape(newDimensions.hexBoard ? "hexboard" : "");
 
     if (ffish.capturesToHand(dropdownVariant.value)) {
       console.log("pockets");
@@ -6760,6 +6780,7 @@ function afterMove(move, capture, alreadyApplied = false) {
   }
 
   const status = getGameStatus(false);
+  gameStatus.innerText = status;
   if (status == "END") {
     getGameStatus(true);
     soundTerminal.currentTime = 0.0;
@@ -7134,6 +7155,17 @@ function getCheckSquares(board) {
     return [];
   }
   let checklist = checks.split(" ");
+  if (hexboardutil.isHexBoardVariant(board.variant())) {
+    const ranks = new Set(
+      checklist.map((square) => square.replace(/[a-z]/g, "")),
+    );
+    const files = new Set(
+      checklist.map((square) => square.replace(/[0-9]/g, "")),
+    );
+    if (ranks.size == 1 && files.size >= getDimensionsFromFen(board.fen()).width) {
+      return [];
+    }
+  }
   let i = 0;
   for (i = 0; i < checklist.length; i++) {
     checklist[i] = convertSquareToChessgroundXKey(checklist[i]);

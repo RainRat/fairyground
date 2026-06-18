@@ -1,3 +1,5 @@
+import { getHexBoardBackground } from "./hexboard.js";
+
 const PieceCharacters = [
   "A",
   "B",
@@ -149,6 +151,7 @@ export class ChessgroundThemeDetector {
     this.BoardHeight = 8;
     this.PieceTheme = "default";
     this.BoardTheme = "defaultboard";
+    this.BoardShape = "";
     for (i = 0; i < PieceCharacters.length; i++) {
       elem = document.createElement("piece");
       item = PieceCharacters[i];
@@ -211,7 +214,7 @@ export class ChessgroundThemeDetector {
     }
     this.PieceTheme = PieceThemeTag;
     this.BoardTheme = BoardThemeTag;
-    this.Wrapper.classList.value = `chessground-theme-detector inner ${PieceThemeTag} ${BoardThemeTag} board${this.BoardWidth}x${this.BoardHeight}`;
+    this.Wrapper.classList.value = `chessground-theme-detector inner ${PieceThemeTag} ${BoardThemeTag} ${this.BoardShape} board${this.BoardWidth}x${this.BoardHeight}`;
   }
 
   SetBoardDimensions(BoardWidth, BoardHeight) {
@@ -220,16 +223,29 @@ export class ChessgroundThemeDetector {
     }
     this.BoardWidth = BoardWidth;
     this.BoardHeight = BoardHeight;
-    this.Wrapper.classList.value = `chessground-theme-detector inner ${this.PieceTheme} ${this.BoardTheme} board${BoardWidth}x${BoardHeight}`;
+    this.Wrapper.classList.value = `chessground-theme-detector inner ${this.PieceTheme} ${this.BoardTheme} ${this.BoardShape} board${BoardWidth}x${BoardHeight}`;
+  }
+
+  SetBoardShape(BoardShape) {
+    if (typeof BoardShape != "string") {
+      throw TypeError();
+    }
+    this.BoardShape = BoardShape;
+    this.Wrapper.classList.value = `chessground-theme-detector inner ${this.PieceTheme} ${this.BoardTheme} ${BoardShape} board${this.BoardWidth}x${this.BoardHeight}`;
   }
 
   GetThemes() {
     let i = 0;
-    let style = window.getComputedStyle(this.Board, "::before");
-    let boardimgurl = ReplaceURLCSSFunction(style.backgroundImage);
+    let boardimgurl = "";
+    if (this.BoardShape == "hexboard") {
+      boardimgurl = getHexBoardBackground(this.BoardWidth, this.BoardHeight);
+    } else {
+      let style = window.getComputedStyle(this.Board, "::before");
+      boardimgurl = ReplaceURLCSSFunction(style.backgroundImage);
+    }
     let pieceimgurlmap = new Map();
     for (i = 0; i < PieceCharacters.length; i++) {
-      style = window.getComputedStyle(this.Pieces[i]);
+      let style = window.getComputedStyle(this.Pieces[i]);
       pieceimgurlmap.set(
         PieceCharacters[i],
         ReplaceURLCSSFunction(style.backgroundImage),
