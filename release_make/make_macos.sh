@@ -47,7 +47,8 @@ npm install @yao-pkg/pkg@5.16.1 || Error
 
 function TryNoByteCode() {
     npx pkg . --no-bytecode --public --public-packages --target $1 --output $2 >/tmp/make_fairyground.log 2>&1
-    if [ "$(grep 'Error' /tmp/make_fairyground.log)" != "" ]; then
+    local pkg_status=$?
+    if [ $pkg_status -ne 0 ]; then
         echo Error: Build failed. Check the log below to see what\'s going on. File: /tmp/make_fairyground.log
         cat /tmp/make_fairyground.log
         return 11
@@ -60,7 +61,8 @@ function TryNoByteCode() {
 
 function Make() {
     npx pkg . --target $1 --output $2 >/tmp/make_fairyground.log 2>&1
-    if [ "$(grep 'Error' /tmp/make_fairyground.log)" != "" ]; then
+    local pkg_status=$?
+    if [ $pkg_status -ne 0 ] && [ "$(grep 'Failed to make bytecode' /tmp/make_fairyground.log)" != "" ]; then
         echo "Fail: Bytecode generation failed. Trying --no-bytecode..."
         TryNoByteCode $1 $2
         if [ $? -eq 11 ]; then
@@ -68,6 +70,11 @@ function Make() {
         fi
         echo "Pass: $1"
         return 0
+    fi
+    if [ $pkg_status -ne 0 ]; then
+        echo "Error: Build failed. Check the log below to see what's going on. File: /tmp/make_fairyground.log"
+        cat /tmp/make_fairyground.log
+        return 11
     fi
     if [ "$(grep 'Failed to make bytecode' /tmp/make_fairyground.log)" != "" ]; then
         echo "Fail: Bytecode generation failed. Trying --no-bytecode..."

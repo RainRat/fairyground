@@ -118,7 +118,7 @@ function IsImageURLValid(ImageURL) {
 
 function ParseFEN(fen) {
   if (typeof fen != "string") {
-    throw TypeError;
+    throw TypeError();
   }
   let i = 0;
   let j = 0;
@@ -769,6 +769,20 @@ export function GenerateBoardImage(
     whitepocket.length +
     blackpocket.length +
     (ShowPlayerInformation ? 2 : 0);
+  const rawOnFinishedCallback = OnFinishedCallback;
+  let imageExportFinished = false;
+  OnFinishedCallback = (finishedCanvas) => {
+    if (!imageExportFinished) {
+      imageExportFinished = true;
+      rawOnFinishedCallback(finishedCanvas);
+    }
+  };
+  const finishImageElement = () => {
+    drawnelementcount++;
+    if (drawnelementcount >= totalcount) {
+      OnFinishedCallback(canvas);
+    }
+  };
   let displaywidth = Math.max(BoardWidth, pocketsize);
   let displayheight =
     BoardHeight + (HasPocket ? 2 : 0) + (ShowPlayerInformation ? 2 : 0);
@@ -799,6 +813,9 @@ export function GenerateBoardImage(
 
   //Board
   const boardimg = new Image();
+  boardimg.onerror = () => {
+    OnFinishedCallback(canvas);
+  };
   boardimg.onload = () => {
     let i = 0,
       j = 0;
@@ -879,6 +896,7 @@ export function GenerateBoardImage(
                   OnFinishedCallback(canvas);
                 }
               };
+              pieceimg.onerror = finishImageElement;
               pieceimg.src = imgurl;
             } else {
               drawnelementcount++;
@@ -929,6 +947,7 @@ export function GenerateBoardImage(
                   OnFinishedCallback(canvas);
                 }
               };
+              pieceimg.onerror = finishImageElement;
               pieceimg.src = imgurl;
             } else {
               drawnelementcount++;
@@ -996,6 +1015,7 @@ export function GenerateBoardImage(
                 OnFinishedCallback(canvas);
               }
             };
+            pieceimg.onerror = finishImageElement;
             pieceimg.src = imgurl;
           } else {
             drawnelementcount++;
@@ -1052,6 +1072,7 @@ export function GenerateBoardImage(
                 OnFinishedCallback(canvas);
               }
             };
+            pieceimg.onerror = finishImageElement;
             pieceimg.src = imgurl;
           } else {
             drawnelementcount++;
@@ -1109,6 +1130,7 @@ export function GenerateBoardImage(
                 OnFinishedCallback(canvas);
               }
             };
+            pieceimg.onerror = finishImageElement;
             pieceimg.src = imgurl;
           } else {
             drawnelementcount++;
@@ -1165,6 +1187,7 @@ export function GenerateBoardImage(
                 OnFinishedCallback(canvas);
               }
             };
+            pieceimg.onerror = finishImageElement;
             pieceimg.src = imgurl;
           } else {
             drawnelementcount++;
@@ -1265,6 +1288,7 @@ export function GenerateBoardImage(
           OnFinishedCallback(canvas);
         }
       };
+      pieceimg.onerror = finishImageElement;
       pieceimg.src = imgurl;
     } else {
       drawnelementcount++;
@@ -1292,6 +1316,7 @@ export function GenerateBoardImage(
           OnFinishedCallback(canvas);
         }
       };
+      pieceimg.onerror = finishImageElement;
       pieceimg.src = imgurl;
     } else {
       drawnelementcount++;

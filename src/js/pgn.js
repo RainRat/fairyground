@@ -1,6 +1,9 @@
 import * as movelib from "./move.js";
 
-const AllPGNLineCommentMatcher = new RegExp("\\:(.*?)(\r\n|\r|\n)", "g");
+const AllPGNLineCommentMatcher = new RegExp(
+  ";[^\\n\\r]*(\\r\\n|\\r|\\n|$)",
+  "g",
+);
 const AllWhiteSpacePlaceHolderMatcher = new RegExp("\x03", "g");
 const AllLineSplitterMatcher = new RegExp("\r\n|\r|\n", "g");
 const MoveNumberMatcher = new RegExp("(^\\d*\\.+)|(^\\d+$)", "");
@@ -39,7 +42,7 @@ export function ParseSinglePGN(PGNString) {
       }
       headers.set(header, value.slice(1, -1));
     } else {
-      movetext = texts.slice(i).join(" ");
+      movetext = texts.slice(i).join("\n");
       break;
     }
   }
@@ -52,11 +55,12 @@ export function ConvertSymbolToText(Symbol) {
   }
   let num = 0;
   if (Symbol.startsWith("$")) {
-    num = parseInt(Symbol[1]);
+    num = parseInt(Symbol.slice(1), 10);
+    return movelib.NumericAnnotationGlyphs[num];
   } else {
-    num = parseInt(Symbol[0]);
+    num = movelib.Symbols.indexOf(Symbol);
+    return num < 0 ? undefined : movelib.Symbols[num];
   }
-  return movelib.Symbols[num];
 }
 
 export function GetSymbolFromMove(MoveText) {
@@ -82,9 +86,22 @@ function IsBracketEnclosureCorrect(Text) {
   let stack = [];
   let i = 0;
   let ch;
+  let incomment = false;
   for (i = 0; i < Text.length; i++) {
     ch = Text[i];
-    if (ch == "(" || ch == "[" || ch == "{") {
+    if (incomment) {
+      if (ch == "}") {
+        if (stack.pop() != "{") {
+          return false;
+        }
+        incomment = false;
+      }
+      continue;
+    }
+    if (ch == "{") {
+      stack.push(ch);
+      incomment = true;
+    } else if (ch == "(" || ch == "[") {
       stack.push(ch);
     } else if (ch == ")") {
       if (stack.pop() != "(") {
@@ -226,10 +243,12 @@ export function ParsePGNMovesToMoveTree(
             .replace(AllTextLineSplitterMatcher, "\n"),
         );
       } else {
-        pointer.Move.TextAfter += content
-          .slice(1, -1)
-          .replace(AllWhiteSpacePlaceHolderMatcher, " ")
-          .replace(AllTextLineSplitterMatcher, "\n");
+        pointer.Move.AddTextAfter(
+          content
+            .slice(1, -1)
+            .replace(AllWhiteSpacePlaceHolderMatcher, " ")
+            .replace(AllTextLineSplitterMatcher, "\n"),
+        );
       }
     } else if (content.startsWith("$")) {
       if (pointer == tree.RootNode || addingvariation || aftermovenum) {

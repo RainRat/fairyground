@@ -1,4 +1,4 @@
-document.addEventListener("onpageload", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const pagetitle = document.getElementById("pagetitle");
   const dropdown_whitetimemode = document.getElementById(
     "dropdown-whitetimemode",

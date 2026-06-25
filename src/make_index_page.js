@@ -31,7 +31,6 @@ function GetHeadAndBodyOfHTML(html_str) {
       if (pagestr[i] == '"' || pagestr[i] == "'" || pagestr[i] == "`") {
         if (pagestr[i - 1] != "\\" && !stringmode) {
           stringmode = pagestr[i];
-          lastchar = i;
         }
       } else if (pagestr[i] == "<") {
         if (!bodystart && pagestr.startsWith("<body>", i)) {
@@ -104,4 +103,5 @@ try {
   console.log(index_page2);
 } catch (err) {
   console.error("Error reading file:", err);
+  process.exitCode = 1;
 }

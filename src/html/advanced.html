@@ -4236,6 +4236,7 @@
     const App = () => {
       let stockfish = null;
       let stockfish_state = "INIT"; // 'READY', 'FAILED'
+      let browser_stack = null;
       let engineoutput = "";
       let first_engine_output = "";
       let second_engine_output = "";
@@ -7082,6 +7083,34 @@
 
       const oninit = () => {
         stockfish_state = "LOADING";
+        fetch("./lib/browser-stack.json", { cache: "no-store" })
+          .then((response) => (response.ok ? response.json() : null))
+          .then((data) => {
+            browser_stack = data;
+            m.redraw();
+          })
+          .catch(() => {});
+      };
+
+      const formatBrowserStackRepo = (label, repo) => {
+        if (!repo) {
+          return `${label}: unknown`;
+        }
+        const source = repo.branch || repo.path || "local";
+        const revision = repo.commit ? `@${repo.commit}` : "";
+        const dirty = repo.dirty ? "+" : "";
+        return `${label}: ${source}${revision}${dirty}`;
+      };
+
+      const formatBrowserStack = () => {
+        if (!browser_stack) {
+          return "Browser stack: packaged";
+        }
+        return [
+          "Browser stack:",
+          formatBrowserStackRepo("engine", browser_stack.engine?.repo),
+          formatBrowserStackRepo("ffish", browser_stack.ffish?.repo),
+        ].join(" ");
       };
 
       const view = () => {
@@ -7098,6 +7127,7 @@
                   onFinishDownload,
                 }),
               ]),
+              m("div", formatBrowserStack()),
               m("div", { hidden: during_play }, [
                 "- nnue file: ",
                 m("input", {

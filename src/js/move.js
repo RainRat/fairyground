@@ -154,10 +154,10 @@ export const NumericAnnotationGlyphs = [
 
 export function ParseUCIMove(ucimove) {
   if (typeof ucimove != "string") {
-    throw TypeError;
+    throw TypeError();
   }
   if (ucimove == "0000" || ucimove == "") {
-    return [undefined, undefined, undefined, undefined];
+    return ["", "", "", ""];
   }
   function SplitNumberAndLetter(move) {
     if (typeof move != "string") {
@@ -399,7 +399,7 @@ export class Move {
   }
 
   SetMoverRound(MoverRound) {
-    if (typeof MoverRound != "string") {
+    if (typeof MoverRound != "number") {
       throw TypeError();
     }
     this.MoverRound = Math.floor(MoverRound);
@@ -491,8 +491,8 @@ export class Move {
     } else if (this.MoverRound == 0) {
       prefix += `${Math.ceil(this.HalfMoveNumber / TotalMoverCount)}. `;
     }
-    if (this.Symbol) {
-      suffix = this.Symbol.trim();
+    if (this.Symbol.length > 0) {
+      suffix = this.Symbol.join(" ");
     }
     if (this.TextAfter) {
       let texts = this.TextAfter.split("\x02");
@@ -537,8 +537,8 @@ export class Move {
     } else if (this.MoverRound == 0) {
       movenumber = `${Math.ceil(this.HalfMoveNumber / TotalMoverCount)}. `;
     }
-    if (this.Symbol) {
-      symbol = this.Symbol.trim();
+    if (this.Symbol.length > 0) {
+      symbol = this.Symbol.join(" ");
     }
     if (this.TextAfter) {
       let texts = this.TextAfter.split("\x02");
