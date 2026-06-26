@@ -282,18 +282,20 @@ function IsValidColorSyntax(colorString) {
         if (colorString.endsWith(")")) {
             str=colorString.slice(6,-1);
             let parts=str.split('/');
-            if (parts.length!=2) {
+            if (parts.length>2) {
                 return false;
             }
             let LCH=parts[0].trim().split(/[ ]+/);
             if (LCH.length!=3) {
                 return false;
             }
-            let A=parts[1].trim();
             if (LCH[2].endsWith("deg")) {
-                LCH[2]=LCH[2].slice(0,-3);``
+                LCH[2]=LCH[2].slice(0,-3);
             }
-            return IsValidPercentage(LCH[0],0,1) && IsValidPercentage(LCH[1],0,1) && IsValidInteger(LCH[2],0,360) && IsValidDigit(A,0,1);
+            if (!(IsValidPercentage(LCH[0],0,1) && IsValidPercentage(LCH[1],0,1) && IsValidInteger(LCH[2],0,360))) {
+                return false;
+            }
+            return parts.length==1 || IsValidDigit(parts[1].trim(),0,1);
         }
     }
     else if (colorString=="currentcolor") {
@@ -512,7 +514,7 @@ if (args.includes("--colors")) {
             }
             if (!IsValidColorSyntax(entry[2])) {
                 haserror=true;
-                console.error(`At entry ${i+1} in --colors: Illegal CSS color declaration for lightColorCSSCode: "${entry[2].trim()}". The syntax of darkColorCSSCode must follow CSS color declaration requirements.`);
+                console.error(`At entry ${i+1} in --colors: Illegal CSS color declaration for darkColorCSSCode: "${entry[2].trim()}". The syntax of darkColorCSSCode must follow CSS color declaration requirements.`);
             }
             if (haserror) {
                 break;
@@ -675,9 +677,13 @@ console.log("");
 
 result="/* Automatically generated, do not edit!!! */\n";
 
-for (i="a".charCodeAt(0);i<"z".charCodeAt(0);i++) {
-    result+=`.letters .cg-wrap piece.${String.fromCharCode(i)}-piece.white{background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='80px' height='80px'><text font-size='30' x='50%' y='50%' fill='white' class='white' text-anchor='middle' dominant-baseline='central'>${String.fromCharCode(i-32)}</text></svg>\")}`;
-    result+=`.letters .cg-wrap piece.${String.fromCharCode(i)}-piece.black{background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='80px' height='80px'><text font-size='30' x='50%' y='50%' fill='black' class='black' text-anchor='middle' dominant-baseline='central'>${String.fromCharCode(i)}</text></svg>\")}`;
+for (i="a".charCodeAt(0);i<="z".charCodeAt(0);i++) {
+    const letter=String.fromCharCode(i);
+    const whiteLetter=String.fromCharCode(i-32);
+    result+=`.letters .cg-wrap piece.${letter}-piece.white{background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='80px' height='80px'><text font-size='30' x='50%' y='50%' fill='white' class='white' text-anchor='middle' dominant-baseline='central'>${whiteLetter}</text></svg>\")}`;
+    result+=`.letters .cg-wrap piece.p${letter}-piece.white{background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='80px' height='80px'><text font-size='30' x='50%' y='50%' fill='white' class='white' text-anchor='middle' dominant-baseline='central'>+${whiteLetter}</text></svg>\")}`;
+    result+=`.letters .cg-wrap piece.${letter}-piece.black{background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='80px' height='80px'><text font-size='30' x='50%' y='50%' fill='black' class='black' text-anchor='middle' dominant-baseline='central'>${letter}</text></svg>\")}`;
+    result+=`.letters .cg-wrap piece.p${letter}-piece.black{background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='80px' height='80px'><text font-size='30' x='50%' y='50%' fill='black' class='black' text-anchor='middle' dominant-baseline='central'>+${letter}</text></svg>\")}`;
 }
 result+=`.letters .cg-wrap piece._-piece{background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='80px' height='80px'><text font-size='30' x='50%' y='50%' fill='red' class='red' text-anchor='middle' dominant-baseline='central'>✽</text></svg>\")}`;
 result+=`.letters .cg-wrap piece.unknown{background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='80px' height='80px'><text font-size='30' x='50%' y='50%' fill='grey' class='grey' text-anchor='middle' dominant-baseline='central'>❔</text></svg>\")}`;

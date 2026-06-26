@@ -200,10 +200,7 @@ export function applyHexBoardLayout(container, dimensions) {
       dimensions.width,
       dimensions.height,
     );
-    container.style.setProperty(
-      "--hex-board-image",
-      `url("${boardImage}")`,
-    );
+    container.style.setProperty("--hex-board-image", `url("${boardImage}")`);
   } else {
     container.style.removeProperty("--hex-board-image");
     container.querySelectorAll(".hexboard-bg").forEach((element) => {
@@ -227,7 +224,7 @@ function ensureHexBoardBackground(chessground) {
 }
 
 function keyToPosition(key) {
-  return [key.charCodeAt(0) - 97, key.charCodeAt(1) - 49];
+  return [key.charCodeAt(0) - 97, Number.parseInt(key.slice(1), 10) - 1];
 }
 
 function getHexMetrics(width, height) {
@@ -322,7 +319,15 @@ function alignHexBoardCoordinates(chessground, bounds) {
     } else if (/^[0-9]+$/.test(text)) {
       const rank = Number.parseInt(text, 10);
       if (Number.isFinite(rank)) {
-        center = getHexCenter(`g${rank}`, state, bounds);
+        const anchorFileIndex = Math.max(
+          0,
+          Math.min(
+            state.dimensions.width - 1,
+            Math.ceil(state.dimensions.width / 2) - 1,
+          ),
+        );
+        const anchorFile = String.fromCharCode(97 + anchorFileIndex);
+        center = getHexCenter(`${anchorFile}${rank}`, state, bounds);
         center[0] = bounds.width;
         xNudge = 7;
       }

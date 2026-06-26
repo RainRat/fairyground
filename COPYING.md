@@ -38,6 +38,6 @@ release_make/ldid/* | [Link Identity Editor Release](https://github.com/Procursu
 
 ### Notes
 
-1. All files not mentioned above belong to this repository and use the [GNU General Public License 3.0](LICENSE). For files that do not apply to [GPLv3+], please ask the develop team in the [Issues](https://github.com/ianfab/fairyground/issues) section.
+1. All files not mentioned above belong to this repository and use the [GNU General Public License 3.0](LICENSE). For files that do not apply to [GPLv3+], please ask the development team in the [Issues](https://github.com/ianfab/fairyground/issues) section.
 2. The syntax of files contains regular expression, which is in the brackets, to match files. For example, `public/(a|b).txt` is `"public/" + /a|b/ + ".txt"` which matches both _**public/a.txt**_ and _**public/b.txt**_. An asterisk at the outside of brackets is a wildcard which has the same function as the one in file paths.
 3. For files with unknown license, we assume that they can be used in our project. If we violate your license, please tell us in in the [Issues](https://github.com/ianfab/fairyground/issues) section and we will remove them.

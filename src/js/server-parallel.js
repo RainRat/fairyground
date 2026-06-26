@@ -4,6 +4,7 @@ const cluster = require("cluster");
 const WebSocket = require("ws");
 const { spawn } = require("child_process");
 const os = require("os");
+const nodePath = require("path");
 const WebSocketServer = WebSocket.Server;
 const PathSplitterMatcher = new RegExp("/", "g");
 const JSONSplitterMatcher = new RegExp("(?<=\\:|\\;|\\,)", "g");
@@ -24,6 +25,25 @@ function GenerateErrorPage(
   reasons,
   suggestion,
 ) {
+  const escapeHtml = (value) =>
+    String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  status = escapeHtml(status);
+  message = escapeHtml(message);
+  description = escapeHtml(description);
+  method = escapeHtml(method);
+  protocol = escapeHtml(protocol);
+  host = escapeHtml(host);
+  url = escapeHtml(url);
+  query = escapeHtml(query);
+  headers = escapeHtml(headers);
+  path = escapeHtml(path);
+  reasons = escapeHtml(reasons);
+  suggestion = escapeHtml(suggestion);
   return `<!doctypehtml><html><head><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;border:0;font:inherit;font-family:Arial}html,body{height:100%}html{background-color:#eee}main{height:100%;display:flex;flex-direction:column;padding:20px;margin-bottom:20px}#pagetitle{font-size:40px;margin-bottom:10px;font-weight:bold;color:#dc143c;background-color:#aaa;border:5px#000 solid;width:100%;padding:10px}#errordescription{font-size:20px;margin-bottom:20px;font-weight:bold;color:#000}.main{border:3px#999 dotted;width:100%;padding:10px;margin-bottom:20px}h1{font-weight:bold;color:#000;font-size:20px;margin-bottom:10px}.content{padding-left:20px;margin-bottom:5px;word-wrap:break-word;white-space:pre-line}hr{border:1px#000 solid;margin-bottom:5px}#footer{padding:10px;text-align:center}</style><title>Error</title></head><body><main><p id="pagetitle">Error ${status} - ${message}</p><p id="errordescription">${description}</p><div class="main"><h1>Request Details</h1><p class="content">Request method: ${method}</p><p class="content">Request URL: ${protocol}://${host}${url}</p><p class="content">Query string: ${query}</p><p class="content">Request headers: ${headers}</p><p class="content">Physical path: ${path}</p></div><div class="main"><h1>Possible Reasons</h1><p class="content">${reasons}</p></div><div class="main"><h1>Suggestions</h1><p class="content">${suggestion}</p></div><div id="footer"><hr/><p>Node.js ${process.version}</p></div></main></body></html>`;
 }
 
@@ -104,7 +124,7 @@ if (cluster.isMaster) {
   let numworkers = 0;
 
   if (args.includes("--number-workers")) {
-    let num = parseInt(args[args.indexOf("--number-workers") + 1]);
+    let num = Number.parseInt(args[args.indexOf("--number-workers") + 1], 10);
     if (num > 0) {
       numworkers = num;
     } else {
@@ -338,20 +358,54 @@ if (cluster.isMaster) {
   var ClientEngines = new Map();
   var ConnectingClients = new Set();
   var ConnectedClients = new Set();
-  const PathLevelSeperatorMatcher = new RegExp("\\\\|/", "");
   const MessageSplitter = new RegExp("\x10", "");
 
-  function GetWorkingDirectoryFromExcutablePath(path) {
+  function GetWorkingDirectoryFromExecutablePath(path) {
     if (typeof path != "string") {
       throw TypeError();
     }
-    let levels = path.split(PathLevelSeperatorMatcher);
-    levels = levels.slice(0, -1);
-    if (os.type == "Windows_NT") {
-      return levels.join("\\");
-    } else {
-      return levels.join("/");
+    return nodePath.dirname(path);
+  }
+
+  function SplitCommandLine(command) {
+    if (typeof command != "string") {
+      throw TypeError();
     }
+    const args = [];
+    let current = "";
+    let quote = "";
+    let escaping = false;
+    for (let i = 0; i < command.length; i++) {
+      const ch = command[i];
+      if (escaping) {
+        current += ch;
+        escaping = false;
+      } else if (ch == "\\") {
+        escaping = true;
+      } else if (quote != "") {
+        if (ch == quote) {
+          quote = "";
+        } else {
+          current += ch;
+        }
+      } else if (ch == '"' || ch == "'") {
+        quote = ch;
+      } else if (/\s/.test(ch)) {
+        if (current != "") {
+          args.push(current);
+          current = "";
+        }
+      } else {
+        current += ch;
+      }
+    }
+    if (escaping) {
+      current += "\\";
+    }
+    if (current != "") {
+      args.push(current);
+    }
+    return args;
   }
 
   function ProtocolInitializationCommand(protocol) {
@@ -425,9 +479,15 @@ if (cluster.isMaster) {
       }
       this.ID = ID;
       this.Command = Command;
+      this.CommandParts = SplitCommandLine(Command);
+      if (this.CommandParts.length == 0) {
+        throw SyntaxError("Empty engine command.");
+      }
       this.WorkingDirectory = WorkingDirectory;
       if (WorkingDirectory == "") {
-        this.WorkingDirectory = GetWorkingDirectoryFromExcutablePath(Command);
+        this.WorkingDirectory = GetWorkingDirectoryFromExecutablePath(
+          this.CommandParts[0],
+        );
       }
       this.Protocol = Protocol;
       this.Options = Options;
@@ -437,8 +497,10 @@ if (cluster.isMaster) {
       this.Process = null;
       this.WebSocketConnection = WebSocketConnection;
       this.Status = "NOT_LOADED";
-      this.LoadTimeOut = LoadTimeOut;
-      if (LoadTimeOut <= 0) {
+      this.LoadTimeOut = Number.isFinite(LoadTimeOut)
+        ? Math.trunc(LoadTimeOut)
+        : LoadEngineTimeout;
+      if (this.LoadTimeOut <= 0) {
         this.LoadTimeOut = LoadEngineTimeout;
       }
       this.LoadFinishCallBack = undefined;
@@ -525,12 +587,16 @@ if (cluster.isMaster) {
           cwd: this.WorkingDirectory,
         });
       } else if (os.type() == "Darwin" || os.type() == "Linux") {
-        this.Process = spawn(this.Command, [], { cwd: this.WorkingDirectory });
+        this.Process = spawn(this.CommandParts[0], this.CommandParts.slice(1), {
+          cwd: this.WorkingDirectory,
+        });
       } else {
         console.warn(
           `Unknown OS type: ${os.type()}, default handler will be used.`,
         );
-        this.Process = spawn(this.Command, [], { cwd: this.WorkingDirectory });
+        this.Process = spawn(this.CommandParts[0], this.CommandParts.slice(1), {
+          cwd: this.WorkingDirectory,
+        });
       }
       this.Process.on("error", (err) => {
         console.error(
@@ -585,7 +651,7 @@ if (cluster.isMaster) {
       });
       console.log(
         "[WebSocket Server] Engine ",
-        this.Command.split(PathLevelSeperatorMatcher).at(-1).trim(),
+        nodePath.basename(this.CommandParts[0]).trim(),
         " loading for ",
         this.Color,
         `(ID:${this.ID}).`,
@@ -737,7 +803,7 @@ if (cluster.isMaster) {
           msg[3],
           [],
           msg[2],
-          parseInt(msg[6]),
+          Number.parseInt(msg[6], 10),
           ws,
         );
         ClientEngines.set(`${msg[1]}|${msg[2]}`, engineobj);
