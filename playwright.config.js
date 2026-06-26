@@ -10,7 +10,7 @@ module.exports = defineConfig({
   webServer: {
     command: "node server.js",
     port: 5015,
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 30000,
   },
 });

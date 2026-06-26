@@ -6,7 +6,10 @@ const DEFAULT_FSF_X_SRC_DIR = path.resolve(
   __dirname,
   "../../Fairy-Stockfish-X/src",
 );
-const FSF_X_SRC_DIR = process.env.FSF_X_SRC || DEFAULT_FSF_X_SRC_DIR;
+const FSF_X_REPO = process.env.FAIRY_FSX_REPO;
+const FSF_X_SRC_DIR =
+  process.env.FSF_X_SRC ||
+  (FSF_X_REPO ? path.join(FSF_X_REPO, "src") : DEFAULT_FSF_X_SRC_DIR);
 const FSF_X_BINARY =
   process.env.FSF_X_BIN || path.join(FSF_X_SRC_DIR, "stockfish");
 const FSF_X_VARIANTS =
@@ -45,13 +48,24 @@ async function selectVariantBySearchingTypes(page, targetValue) {
 
   for (const typeValue of variantTypeValues) {
     await page.selectOption("#dropdown-varianttype", typeValue);
-    await page.waitForTimeout(100);
-    const found = await page.$eval(
-      "#dropdown-variant",
-      (dropdown, value) =>
-        Array.from(dropdown.options).some((option) => option.value === value),
-      targetValue,
-    );
+    const found = await page
+      .waitForFunction(
+        (value) => {
+          const dropdown = document.querySelector("#dropdown-variant");
+          return (
+            dropdown &&
+            Array.from(dropdown.options).some(
+              (option) => option.value === value,
+            )
+          );
+        },
+        targetValue,
+        { timeout: 1000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
     if (found) {
       return true;
     }
@@ -210,7 +224,8 @@ test("forced pass moves resync the engine", async ({ page }) => {
   await page.selectOption("#dropdown-variant", "ataxx");
 
   await page.waitForFunction(
-    () => !!window.stockfish && typeof window.stockfish.postMessage == "function",
+    () =>
+      !!window.stockfish && typeof window.stockfish.postMessage == "function",
     { timeout: 30000 },
   );
   await page.evaluate(() => {
@@ -238,7 +253,9 @@ test("forced pass moves resync the engine", async ({ page }) => {
   await page.waitForFunction(
     () =>
       Array.isArray(window.__pwPassMessages) &&
-      window.__pwPassMessages.some((message) => message.startsWith("position ")) &&
+      window.__pwPassMessages.some((message) =>
+        message.startsWith("position "),
+      ) &&
       window.__pwPassMessages.some((message) => message.includes("moves 0000")),
     { timeout: 10000 },
   );
@@ -469,8 +486,7 @@ test("Y accepts a pocket drop on a visible hex", async ({ page }) => {
   await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
-      !!window.ffishlib &&
-      window.ffishlib.variants().split(" ").includes("y"),
+      !!window.ffishlib && window.ffishlib.variants().split(" ").includes("y"),
     { timeout: 30000 },
   );
 
@@ -479,17 +495,14 @@ test("Y accepts a pocket drop on a visible hex", async ({ page }) => {
   await page.selectOption("#dropdown-variant", "y");
 
   const geometry = await page.evaluate(() => {
-    const board = document.querySelector(
-      "#chessground-container-div cg-board",
-    );
+    const board = document.querySelector("#chessground-container-div cg-board");
     const pocketPiece = document.querySelector("#pocket-top piece.p-piece");
     const bounds = board.getBoundingClientRect();
     const pieceBounds = pocketPiece.getBoundingClientRect();
     const radius = 36;
     const hexWidth = Math.sqrt(3) * radius;
     const padding = 6;
-    const svgWidth =
-      padding * 2 + hexWidth + 9 * hexWidth + 9 * (hexWidth / 2);
+    const svgWidth = padding * 2 + hexWidth + 9 * hexWidth + 9 * (hexWidth / 2);
     const svgHeight = padding * 2 + radius * 2 + 9 * (radius * 1.5);
     const scale = bounds.width / svgWidth;
     const renderedTop = (bounds.height - svgHeight * scale) / 2;
@@ -500,13 +513,8 @@ test("Y accepts a pocket drop on a visible hex", async ({ page }) => {
         y: pieceBounds.y + pieceBounds.height / 2,
       },
       target: {
-        x:
-          bounds.x +
-          (padding + hexWidth / 2 + 9 * hexWidth) * scale,
-        y:
-          bounds.y +
-          renderedTop +
-          (padding + radius) * scale,
+        x: bounds.x + (padding + hexWidth / 2 + 9 * hexWidth) * scale,
+        y: bounds.y + renderedTop + (padding + radius) * scale,
       },
     };
   });
@@ -528,8 +536,7 @@ test("Y does not adjudicate an interior three-stone line as a win", async ({
   await uploadVariantsIni(page);
   await page.waitForFunction(
     () =>
-      !!window.ffishlib &&
-      window.ffishlib.variants().split(" ").includes("y"),
+      !!window.ffishlib && window.ffishlib.variants().split(" ").includes("y"),
     { timeout: 30000 },
   );
 
@@ -545,7 +552,8 @@ test("Y does not adjudicate an interior three-stone line as a win", async ({
   await expect(page.locator("#gameresult")).toHaveValue("");
   await page.evaluate(() => document.getElementById("searchmove").click());
   await page.waitForFunction(
-    () => document.querySelector("#availablemovelist").options.length - 1 === 50,
+    () =>
+      document.querySelector("#availablemovelist").options.length - 1 === 50,
   );
 });
 
@@ -562,8 +570,7 @@ test("minihex external Black returns the turn to White", async ({ page }) => {
   await page.getByRole("button", { name: "Apply VariantPath" }).click();
   await page.waitForFunction(
     () => {
-      const engine =
-        window.fairyground?.BinaryEngineFeature?.second_engine;
+      const engine = window.fairyground?.BinaryEngineFeature?.second_engine;
       return (
         engine &&
         engine.IsLoaded &&
@@ -606,11 +613,8 @@ test("minihex external Black returns the turn to White", async ({ page }) => {
 
   await page.waitForFunction(
     () =>
-      document
-        .querySelector("#move")
-        .value.trim()
-        .split(/\s+/)
-        .filter(Boolean).length >= 2,
+      document.querySelector("#move").value.trim().split(/\s+/).filter(Boolean)
+        .length >= 2,
     { timeout: 15000 },
   );
 

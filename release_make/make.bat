@@ -24,7 +24,7 @@ if not exist .\node_modules (
 
 echo Make sure that you have run "npm install" and "node_modules" folder exists in the root folder before running this script.
 echo What is the CPU architecture of your build platform (This computer)? (Enter x86_64 or ARM64)
-set /P input=^> 
+set /P input=^>
 if "%input%"=="ARM64" (
     set arch=arm64
 ) else if "%input%"=="x86_64" (
@@ -59,10 +59,11 @@ call :Make %nodeversion%-macos-arm64 .\release-builds\macos\arm64\FairyGround.ap
 if "%ERROR%"=="1" (goto Error)
 
 cd ..
-set result=
-start /wait "" cmd.exe /C npm run buildwithcmd ^> %TEMP%\make_fairyground.log ^& exit
-FOR /F "usebackq" %%i IN (`findstr /L /I "Error" "%TEMP%\make_fairyground.log"`) DO set result=%%i
-if not "%result%"=="" (goto Error)
+start /wait "" cmd.exe /C npm run buildwithcmd ^> %TEMP%\make_fairyground.log
+if errorlevel 1 (
+    type "%TEMP%\make_fairyground.log"
+    goto Error
+)
 
 xcopy .\public .\release_make\release-builds\win\x64\public /E /H /C /I /Q || goto Error
 xcopy .\public .\release_make\release-builds\linux\x64\public /E /H /C /I /Q || goto Error
@@ -97,10 +98,17 @@ exit /b 1
 
 :Make
 set ERROR=0
-start /WAIT /MIN "" cmd.exe /C ^(npx pkg . --target %~1 --output %2 ^& exit ^) ^> %TEMP%\make_fairyground.log 2^>^&1
+start /WAIT /MIN "" cmd.exe /C npx pkg . --target %~1 --output %2 ^> %TEMP%\make_fairyground.log 2^>^&1
+set pkg_status=%ERRORLEVEL%
 set result=
-FOR /F "usebackq" %%i IN (`findstr /L /I "Error" "%TEMP%\make_fairyground.log"`) DO set result=%%i
-if not "%result%"=="" (
+FOR /F "usebackq" %%i IN (`findstr /L /I "Failed to make bytecode" "%TEMP%\make_fairyground.log"`) DO set result=%%i
+if not "%pkg_status%"=="0" (
+    if "%result%"=="" (
+        echo Error: Build failed. Check the log below to see what's going on. File: %TEMP%\make_fairyground.log
+        type "%TEMP%\make_fairyground.log"
+        set ERROR=1
+        exit /b 1
+    )
     echo Fail: Bytecode generation failed. Trying --no-bytecode...
     call :TryNoByteCode %~1 %2
     if "!ERROR!"=="1" (
@@ -109,8 +117,6 @@ if not "%result%"=="" (
     echo Pass: %~1
     exit /b 0
 )
-set result=
-FOR /F "usebackq" %%i IN (`findstr /L /I "Failed to make bytecode" "%TEMP%\make_fairyground.log"`) DO set result=%%i
 if not "%result%"=="" (
     echo Fail: Bytecode generation failed. Trying --no-bytecode...
     call :TryNoByteCode %~1 %2
@@ -129,10 +135,8 @@ echo Pass: %~1
 exit /b 0
 
 :TryNoByteCode
-start /WAIT /MIN "" cmd.exe /C ^(npx pkg . --no-bytecode --public --public-packages --target %~1 --output %2 ^& exit ^)  ^> %TEMP%\make_fairyground.log 2^>^&1
-set result=
-FOR /F "usebackq" %%i IN (`findstr /L /I "Error" "%TEMP%\make_fairyground.log"`) DO set result=%%i
-if not "%result%"=="" (
+start /WAIT /MIN "" cmd.exe /C npx pkg . --no-bytecode --public --public-packages --target %~1 --output %2 ^> %TEMP%\make_fairyground.log 2^>^&1
+if errorlevel 1 (
     echo Error: Build failed. Check the log below to see what's going on. File: %TEMP%\make_fairyground.log
     type "%TEMP%\make_fairyground.log"
     set ERROR=1

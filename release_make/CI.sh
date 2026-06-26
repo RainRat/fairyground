@@ -136,15 +136,15 @@ rm -f ./public/serve.json
 rm -f ./public/_headers
 find ./public -type f -name "original.*" -exec rm -f {} \;
 
-cp -r ./public ./release_make/release-builds/win/x64/
-cp -r ./public ./release_make/release-builds/linux/x64/
-cp -r ./public ./release_make/release-builds/win/arm64/
-cp -r ./public ./release_make/release-builds/linux/arm64/
+cp -r ./public ./release_make/release-builds/win/x64/ || Error
+cp -r ./public ./release_make/release-builds/linux/x64/ || Error
+cp -r ./public ./release_make/release-builds/win/arm64/ || Error
+cp -r ./public ./release_make/release-builds/linux/arm64/ || Error
 #cp -r ./public ./release_make/release-builds/macos/x64/
 #cp -r ./public ./release_make/release-builds/macos/arm64/
-cp -r ./public ./release_make/release-builds/script/any/
-cp -r ./release_make/node_modules_script ./release_make/release-builds/script/any/node_modules
-cp ./release_make/index.js ./release_make/release-builds/script/any/server.js
+cp -r ./public ./release_make/release-builds/script/any/ || Error
+cp -r ./release_make/node_modules_script ./release_make/release-builds/script/any/node_modules || Error
+cp ./release_make/index.js ./release_make/release-builds/script/any/server.js || Error
 echo "node server.js" > ./release_make/release-builds/script/any/Fairyground_Linux_macOS.sh
 echo "node server.js" > ./release_make/release-builds/script/any/Fairyground_Windows.bat
 echo "Follow steps below to use:" > ./release_make/release-builds/script/any/HOW_TO_USE.txt

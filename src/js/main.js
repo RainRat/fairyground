@@ -4039,9 +4039,9 @@ createFfishModule().then((loadedModule) => {
       return null;
     }
     window.ffishVariantsLoading = true;
-    const ini = await selected.text();
-    console.log(ini);
     try {
+      const ini = await selected.text();
+      console.log(ini);
       const result = await loadVariantConfigResiliently(ini);
       ffish = result.module;
       window.ffishlib = result.module;
@@ -4867,7 +4867,7 @@ createFfishModule().then((loadedModule) => {
             dropdownPositionVariantName.value,
           );
           textFen.value = game.FEN;
-          positionInformation.innerHTML = game.Description;
+          positionInformation.textContent = game.Description;
           textMoves.value = game.Moves;
           pSetFen.click();
         } else {
@@ -4899,7 +4899,7 @@ createFfishModule().then((loadedModule) => {
         "\\" +
         dropdownPositionVariantName.value +
         ":\n" +
-        positionInformation.innerHTML,
+        positionInformation.textContent,
     );
   };
 
@@ -4965,7 +4965,10 @@ createFfishModule().then((loadedModule) => {
       if (typeof element != "string" || element.length < 4) {
         return false;
       }
-      const squares = element.trim().split(",")[0].match(/[a-z]+[0-9]+/g);
+      const squares = element
+        .trim()
+        .split(",")[0]
+        .match(/[a-z]+[0-9]+/g);
       return (
         Array.isArray(squares) &&
         squares.length >= 2 &&
@@ -4987,7 +4990,10 @@ createFfishModule().then((loadedModule) => {
       if (typeof element != "string" || element.length < 4) {
         return false;
       }
-      const squares = element.trim().split(",")[0].match(/[a-z]+[0-9]+/g);
+      const squares = element
+        .trim()
+        .split(",")[0]
+        .match(/[a-z]+[0-9]+/g);
       return (
         Array.isArray(squares) &&
         squares.length >= 2 &&
@@ -6239,7 +6245,7 @@ function getDests(board) {
 
   for (let i = 0; i < moves.length; i++) {
     const move = moves[i];
-    const match = move.match(/(\D\d+)(\D\d+)/);
+    const match = move.match(/^([a-z]+\d+)([a-z]+\d+)/);
     if (match) {
       const from = convertSquareToChessgroundXKey(match[1]);
       const to = convertSquareToChessgroundXKey(match[2]);
@@ -7162,7 +7168,10 @@ function getCheckSquares(board) {
     const files = new Set(
       checklist.map((square) => square.replace(/[0-9]/g, "")),
     );
-    if (ranks.size == 1 && files.size >= getDimensionsFromFen(board.fen()).width) {
+    if (
+      ranks.size == 1 &&
+      files.size >= getDimensionsFromFen(board.fen()).width
+    ) {
       return [];
     }
   }
