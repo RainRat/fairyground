@@ -1055,6 +1055,83 @@
     display: flex;
   }
 
+  /* Spell Chess potions are reserve pieces, but should read as spells rather
+     than ordinary fairy pieces in every selected piece theme. */
+  #chessground-container-div.spell-chess .cg-wrap piece.f-piece,
+  #chessground-container-div.spell-chess .cg-wrap piece.f-piece.black,
+  #chessground-mini-container-div.spell-chess .cg-wrap piece.f-piece,
+  #chessground-mini-container-div.spell-chess .cg-wrap piece.f-piece.black {
+    background-image: url("assets/images/variants/spell-freeze-potion.svg") !important;
+  }
+
+  #chessground-container-div.spell-chess .cg-wrap piece.j-piece,
+  #chessground-container-div.spell-chess .cg-wrap piece.j-piece.black,
+  #chessground-mini-container-div.spell-chess .cg-wrap piece.j-piece,
+  #chessground-mini-container-div.spell-chess .cg-wrap piece.j-piece.black {
+    background-image: url("assets/images/variants/spell-jump-potion.svg") !important;
+  }
+
+  .spell-potion-drag-ghost {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    width: 72px;
+    height: 72px;
+    pointer-events: none;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.45));
+    opacity: 0.9;
+  }
+
+  .spell-potion-drag-ghost.f-piece {
+    background-image: url("assets/images/variants/spell-freeze-potion.svg");
+  }
+
+  .spell-potion-drag-ghost.j-piece {
+    background-image: url("assets/images/variants/spell-jump-potion.svg");
+  }
+
+  #chessground-container-div.spell-chess .spell-potion-marker {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+  }
+
+  #chessground-container-div.spell-chess .spell-potion-marker.freeze {
+    background: rgba(80, 174, 255, 0.3);
+    border: 3px solid rgba(185, 235, 255, 0.95);
+    box-shadow: inset 0 0 0 2px rgba(26, 113, 177, 0.6);
+  }
+
+  #chessground-container-div.spell-chess .spell-potion-marker.jump {
+    background: rgba(172, 97, 255, 0.42);
+    border: 3px solid rgba(243, 215, 255, 0.95);
+    box-shadow: inset 0 0 0 2px rgba(102, 45, 150, 0.65);
+  }
+
+  #chessground-container-div.spell-chess #pocket-top piece.spell-cooldown::after,
+  #chessground-container-div.spell-chess #pocket-bottom piece.spell-cooldown::after,
+  #chessground-mini-container-div.spell-chess #pocket-top-mini piece.spell-cooldown::after,
+  #chessground-mini-container-div.spell-chess #pocket-bottom-mini piece.spell-cooldown::after {
+    content: attr(data-cooldown);
+    position: absolute;
+    right: 2%;
+    bottom: 2%;
+    min-width: 28%;
+    border-radius: 999px;
+    background: #15243a;
+    color: #fff;
+    font: bold 18px/1 Arial, sans-serif;
+    padding: 7%;
+    text-align: center;
+    box-shadow: 0 1px 3px #000;
+  }
+
   #links a {
     margin: 20px;
     font-size: 20px;
@@ -4247,6 +4324,13 @@
       let play_white = false;
       let play_black = false;
       let play_move = false;
+      // UCI bestmove replies do not carry a request id. Keep a stopped
+      // browser-engine search in flight until its terminal reply arrives, then
+      // start the newer request. This prevents a legal move from the old
+      // position being applied to the new one.
+      let browserSearchActive = false;
+      let browserSearchStopping = false;
+      let queuedBrowserGo = null;
       let review_mode = false;
       let board_setup_mode = false;
       let advanced_time_control = false;
@@ -5249,6 +5333,13 @@
         if (board_setup_mode) {
           return;
         }
+        if (browserSearchStopping) {
+          queuedBrowserGo = [
+            white_engine_ponder_and_human_black,
+            black_engine_ponder_and_human_white,
+          ];
+          return;
+        }
         return_early = play_move;
         console.log(`return early: ${return_early}`);
         if (return_early) return; // avoid race condition
@@ -5448,10 +5539,10 @@
                   white_byoyomi_time_per_period,
                 );
               } else {
-                stockfish.postMessage(`go ${args}`);
+                startBrowserSearch(args);
               }
             } else {
-              stockfish.postMessage(`go ${args}`);
+              startBrowserSearch(args);
             }
           } else if (stm == "white") {
             if (fge.first_engine) {
@@ -5509,11 +5600,11 @@
                 }
               } else if (!black_engine_ponder_and_human_white) {
                 engineoutput = "";
-                stockfish.postMessage(`go ${args}`);
+                startBrowserSearch(args);
               }
             } else if (!black_engine_ponder_and_human_white) {
               engineoutput = "";
-              stockfish.postMessage(`go ${args}`);
+              startBrowserSearch(args);
             }
             if (fge.second_engine) {
               if (fge.second_engine.IsUsing) {
@@ -5601,11 +5692,11 @@
                 }
               } else if (!white_engine_ponder_and_human_black) {
                 engineoutput = "";
-                stockfish.postMessage(`go ${args}`);
+                startBrowserSearch(args);
               }
             } else if (!white_engine_ponder_and_human_black) {
               engineoutput = "";
-              stockfish.postMessage(`go ${args}`);
+              startBrowserSearch(args);
             }
             if (fge.first_engine) {
               if (fge.first_engine.IsUsing) {
@@ -5640,7 +5731,7 @@
           }
         } else {
           engineoutput = "";
-          stockfish.postMessage(`go ${args}`);
+          startBrowserSearch(args);
         }
       };
 
@@ -6150,6 +6241,11 @@
       };
 
       const stop = (interrupt_pondering) => {
+        if (browserSearchActive) {
+          browserSearchActive = false;
+          browserSearchStopping = true;
+          play_move = false;
+        }
         stockfish.postMessage(`stop`);
         if (fge.first_engine) {
           fge.first_engine.StopThinking(
@@ -6166,6 +6262,11 @@
         if (fge.analysis_engine) {
           fge.analysis_engine.StopThinking(true, false);
         }
+      };
+
+      const startBrowserSearch = (args) => {
+        browserSearchActive = true;
+        stockfish.postMessage(`go ${args}`);
       };
 
       const force_stop = () => {
@@ -6685,17 +6786,54 @@
                   }
                 } else if (line.startsWith(" ")) {
                 } else {
-                  if (
-                    !review_mode &&
-                    line.startsWith("bestmove") &&
-                    play_move
-                  ) {
-                    play_move = false;
-                    if (analysis_mode) {
-                      return;
+                  if (line.startsWith("bestmove")) {
+                    if (browserSearchStopping) {
+                      browserSearchStopping = false;
+                      const queuedGo = queuedBrowserGo;
+                      queuedBrowserGo = null;
+                      if (queuedGo) {
+                        window.setTimeout(
+                          () => go(queuedGo[0], queuedGo[1]),
+                          0,
+                        );
+                      }
+                    } else {
+                      // Every non-stale bestmove terminates the browser
+                      // search, including analysis searches that are not
+                      // going to be played automatically.
+                      browserSearchActive = false;
+                      if (!review_mode && play_move) {
+                        if (analysis_mode) {
+                          play_move = false;
+                          return;
+                        }
+                        const engineMove = line.trim().split(/\s+/)[1] || "";
+                        // A terminal search can report no move. Do not send
+                        // that marker through the square/move parser.
+                        const noMove =
+                          !engineMove ||
+                          /^(?:\(none\)|none|resign|nomove|no-move)$/i.test(
+                            engineMove,
+                          );
+                        // A bestmove terminates this automatic-move request
+                        // even when it cannot be applied. Keeping the latch
+                        // armed would let a later, unrelated response play.
+                        play_move = false;
+                        if (noMove) {
+                          if (typeof window.finalizeEngineTerminalState === "function") {
+                            window.finalizeEngineTerminalState();
+                          }
+                        } else if (
+                          typeof window.applyCurrentBoardMove != "function" ||
+                          !window.applyCurrentBoardMove(engineMove)
+                        ) {
+                          console.warn(
+                            "Discarded stale or illegal engine move:",
+                            engineMove,
+                          );
+                        }
+                      }
                     }
-                    $("#move").value += " " + line.split(" ")[1];
-                    $("#set").click();
                   }
                   engineoutput += line + "\n";
                   if (fge.analysis_engine) {
@@ -7487,7 +7625,7 @@
                     return;
                   }
                   resetTimer();
-                  stockfish.postMessage(`stop`);
+                  stop(true);
                   stockfish.postMessage(`ucinewgame`);
                   if (fge.first_engine) {
                     fge.first_engine.NewGame();
