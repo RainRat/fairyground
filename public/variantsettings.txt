@@ -384,6 +384,14 @@ hindustani|Asymmetric Variants|Hindustani|Asymmetric variant with different armi
 separate-realms|Asymmetric Variants|Separate Realms|Asymmetric variant with different armies and piece roles.|
 # Rule Variants additions
 achi|Rule Variants|Achi|Three-in-a-row abstract game from the alignment and movement family.|
+go9|Rule Variants|Go 9x9|9×9 liberty-based placement game; pass ends the game after two consecutive passes.|
+go13|Rule Variants|Go 13x13|13×13 liberty-based placement game; pass ends the game after two consecutive passes.|
+capture-go9|Rule Variants|Capture Go 9x9|9×9 capture-go variant where the first captured stone wins.|
+capture-go13|Rule Variants|Capture Go 13x13|13×13 capture-go variant where the first captured stone wins.|
+nogo9|Rule Variants|NoGo 9x9|9×9 placement game where captures and self-capture are illegal; passing is not allowed.|
+nogo13|Rule Variants|NoGo 13x13|13×13 placement game where captures and self-capture are illegal; passing is not allowed.|
+suicide-go9|Rule Variants|Suicide Go 9x9|9×9 Go-like placement game where self-capture removes the group.|
+suicide-go13|Rule Variants|Suicide Go 13x13|13×13 Go-like placement game where self-capture removes the group.|
 andernach|Chess Variants|Andernach Chess|Capturing pieces change color after the capture, creating shifting ownership midgame.|
 antiandernach|Chess Variants|Anti-Andernach Chess|Pieces change color after non-capturing moves instead of after captures.|
 superandernach|Chess Variants|Super-Andernach Chess|Andernach-family chess where pieces change color after both capturing and non-capturing moves.|

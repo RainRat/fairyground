@@ -437,6 +437,12 @@ var multipvminiboardtimer = null;
 // Gating (e.g., duck move) click selection state
 var gatingPending = false;
 var gatingContext = null;
+// Spell Chess casts are compound moves: potion target first, then piece move.
+var spellPotionPending = null;
+var spellPotionDragRole = null;
+var spellPotionDragListenersInstalled = false;
+var spellPotionDragGhost = null;
+var spellPotionPointerId = null;
 // Timer event correction after popup dialogs
 var timerElapsePreviousPlayer = false;
 // Spacebar best-move globals
@@ -1936,6 +1942,8 @@ function initBoard(variant) {
   hexboardutil.installHexBoardAlignment(chessground_mini);
   themedetector.SetBoardShape(dimensions.hexBoard ? "hexboard" : "");
   themedetector.SetBoardDimensions(dimensions.width, dimensions.height);
+  updateSpellPotionPresentation();
+  installSpellPotionDragSupport();
 
   // Spacebar to play current best engine move (analysis mode)
   document.addEventListener("keydown", function (ev) {
@@ -2110,6 +2118,310 @@ function redrawChessground(customFEN) {
   }
   updateInnerCoordinateColor(chessground);
   hexboardutil.installHexBoardAlignment(chessground);
+  updateSpellPotionPresentation();
+}
+
+function updateSpellPotionPresentation() {
+  const hasPotions = boardUsesPotions();
+  const fen = hasPotions ? board.fen() : "";
+  chessgroundContainerEl.classList.toggle("spell-chess", hasPotions);
+  chessgroundMiniContainerEl.classList.toggle("spell-chess", hasPotions);
+  if (!chessground) return;
+
+  const wrap = chessground.state.dom.elements.wrap;
+  wrap
+    .querySelectorAll(".spell-potion-marker")
+    .forEach((marker) => marker.remove());
+  const potionPocketPieces = [
+    pocketTopEl,
+    pocketBottomEl,
+    pocketTopMiniEl,
+    pocketBottomMiniEl,
+  ].flatMap((pocket) =>
+    pocket ? [...pocket.querySelectorAll("piece[data-role]")] : [],
+  );
+  potionPocketPieces.forEach((piece) => {
+    piece.classList.remove("spell-cooldown");
+    piece.removeAttribute("data-cooldown");
+  });
+  if (!hasPotions) return;
+
+  const tokens = fen.split(/\s+/);
+  const zoneToken = tokens.find((token) => /^(?:[wb]?[fj]:)/.test(token));
+  const cooldowns = parseSpellPotionCooldowns(fen);
+  const zones = (zoneToken ? zoneToken.split(",") : [])
+    .map((zone) => {
+      const match = zone.match(/^(?:([wb]))?([fj]):([a-z]+\d+)$/);
+      return match
+        ? { color: match[1] || null, potion: match[2], target: match[3] }
+        : null;
+    })
+    .filter(Boolean);
+  if (spellPotionPending) {
+    zones.push({
+      color: board.turn() ? "w" : "b",
+      potion: spellPotionPending.potion,
+      target: spellPotionPending.target,
+    });
+  }
+
+  for (const piece of potionPocketPieces) {
+    const role = piece.getAttribute("data-role")?.toLowerCase();
+    const color = piece.getAttribute("data-color");
+    const index =
+      color === "white"
+        ? role === "f-piece"
+          ? 0
+          : 1
+        : role === "f-piece"
+          ? 2
+          : 3;
+    if ((role === "f-piece" || role === "j-piece") && cooldowns[index] > 0) {
+      piece.classList.add("spell-cooldown");
+      piece.setAttribute("data-cooldown", String(cooldowns[index]));
+    }
+  }
+
+  const dimensions = getDimensions();
+  for (const zone of zones) {
+    const file = zone.target.charCodeAt(0) - "a".charCodeAt(0);
+    const rank = Number.parseInt(zone.target.substring(1), 10) - 1;
+    if (
+      file < 0 ||
+      file >= dimensions.width ||
+      rank < 0 ||
+      rank >= dimensions.height
+    )
+      continue;
+    // Freeze affects a 3×3 zone. Clamp it to the board before drawing so an
+    // edge or corner target never paints into the surrounding UI.
+    const radius = zone.potion === "f" ? 1 : 0;
+    const minFile = Math.max(0, file - radius);
+    const maxFile = Math.min(dimensions.width - 1, file + radius);
+    const minRank = Math.max(0, rank - radius);
+    const maxRank = Math.min(dimensions.height - 1, rank + radius);
+    const isBlack = chessground.state.orientation === "black";
+    const left =
+      ((isBlack ? dimensions.width - maxFile - 1 : minFile) /
+        dimensions.width) *
+      100;
+    const right =
+      ((isBlack ? dimensions.width - minFile : maxFile + 1) /
+        dimensions.width) *
+      100;
+    const top =
+      ((isBlack ? minRank : dimensions.height - maxRank - 1) /
+        dimensions.height) *
+      100;
+    const bottom =
+      ((isBlack ? maxRank + 1 : dimensions.height - minRank) /
+        dimensions.height) *
+      100;
+    const marker = document.createElement("div");
+    marker.className = `spell-potion-marker ${zone.potion === "f" ? "freeze" : "jump"}`;
+    marker.style.left = `${(left + right) / 2}%`;
+    marker.style.top = `${(top + bottom) / 2}%`;
+    marker.style.width = `${right - left}%`;
+    marker.style.height = `${bottom - top}%`;
+    wrap.appendChild(marker);
+  }
+}
+
+function boardUsesPotions() {
+  return (
+    !!board &&
+    typeof board.potionsEnabled === "function" &&
+    board.potionsEnabled()
+  );
+}
+
+function parseSpellPotionCooldowns(fen) {
+  const match = String(fen).match(
+    /<\s*(-?\d+)\s+(-?\d+)(?:\s+(-?\d+)\s+(-?\d+))?\s*>/,
+  );
+  if (!match) return [0, 0, 0, 0];
+
+  const values = match
+    .slice(1)
+    .filter((value) => value !== undefined)
+    .map((value) => Math.max(0, Number.parseInt(value, 10) || 0));
+  if (values.length === 2) {
+    return [values[0], values[0], values[1], values[1]];
+  }
+  return values.length === 4 ? values : [0, 0, 0, 0];
+}
+
+function cancelSpellPotionSelection(restoreBoard = false) {
+  const hadPendingSelection =
+    spellPotionPending != null ||
+    spellPotionDragRole != null ||
+    spellPotionDragGhost != null;
+  spellPotionPending = null;
+  spellPotionDragRole = null;
+  spellPotionPointerId = null;
+  spellPotionDragGhost?.remove();
+  spellPotionDragGhost = null;
+
+  if (restoreBoard && hadPendingSelection && chessground && board) {
+    chessground.cancelMove();
+    chessground.set({
+      movable: {
+        free: false,
+        color: getColorOrUndefined(board),
+        dests: getDests(board),
+      },
+      selectable: { enabled: clickClickMove.checked },
+    });
+  }
+  if (
+    hadPendingSelection &&
+    board &&
+    typeof updateSpellPotionPresentation === "function"
+  ) {
+    updateSpellPotionPresentation();
+  }
+}
+
+function installSpellPotionDragSupport() {
+  if (spellPotionDragListenersInstalled) return;
+  spellPotionDragListenersInstalled = true;
+
+  const startPotionDrag = (event) => {
+    if (event.button !== 0 || !event.isPrimary || !boardUsesPotions()) return;
+
+    const potionPiece = event.target?.closest?.("piece[data-role]");
+    const role = potionPiece?.getAttribute("data-role")?.toLowerCase();
+    const color = potionPiece?.getAttribute("data-color");
+    if (
+      !potionPiece ||
+      (role !== "f-piece" && role !== "j-piece") ||
+      color !== getColor(board) ||
+      potionPiece.classList.contains("spell-cooldown")
+    )
+      return;
+
+    // Replacing a pending cast must restore ordinary destinations and remove
+    // its marker before a new drag can begin.
+    cancelSpellPotionSelection(true);
+    spellPotionDragRole = role;
+    spellPotionPointerId = event.pointerId;
+    spellPotionDragGhost = document.createElement("div");
+    spellPotionDragGhost.className = `spell-potion-drag-ghost ${role}`;
+    document.body.appendChild(spellPotionDragGhost);
+    positionSpellPotionDragGhost(event.clientX, event.clientY);
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+  // Only the current player's main-board reserve can start a spell cast.
+  // Mini boards remain view-only, and ordinary reserve pieces retain their
+  // Chessground drag behaviour.
+  pocketTopEl.addEventListener("pointerdown", startPotionDrag, true);
+  pocketBottomEl.addEventListener("pointerdown", startPotionDrag, true);
+  document.addEventListener(
+    "pointermove",
+    (event) => {
+      if (spellPotionDragGhost && event.pointerId === spellPotionPointerId) {
+        positionSpellPotionDragGhost(event.clientX, event.clientY);
+      }
+    },
+    true,
+  );
+  document.addEventListener(
+    "pointerup",
+    (event) => {
+      if (!spellPotionDragRole || event.pointerId !== spellPotionPointerId)
+        return;
+      const role = spellPotionDragRole;
+      spellPotionDragRole = null;
+      spellPotionPointerId = null;
+      spellPotionDragGhost?.remove();
+      spellPotionDragGhost = null;
+      if (!boardUsesPotions()) return;
+      const dimensions = getDimensions();
+      const bounds = chessgroundEl.getBoundingClientRect();
+      const fileFromLeft = Math.floor(
+        ((event.clientX - bounds.left) / bounds.width) * dimensions.width,
+      );
+      const rankFromTop = Math.floor(
+        ((event.clientY - bounds.top) / bounds.height) * dimensions.height,
+      );
+      if (
+        fileFromLeft < 0 ||
+        fileFromLeft >= dimensions.width ||
+        rankFromTop < 0 ||
+        rankFromTop >= dimensions.height
+      )
+        return;
+
+      const isBlack = chessground.state.orientation === "black";
+      const file = isBlack ? dimensions.width - fileFromLeft - 1 : fileFromLeft;
+      const rank = isBlack ? rankFromTop + 1 : dimensions.height - rankFromTop;
+      const target = `${String.fromCharCode("a".charCodeAt(0) + file)}${rank}`;
+      beginSpellPotionDrop(role, convertSquareToChessgroundXKey(target));
+    },
+    true,
+  );
+  document.addEventListener(
+    "pointercancel",
+    (event) => {
+      if (event.pointerId === spellPotionPointerId)
+        cancelSpellPotionSelection();
+    },
+    true,
+  );
+}
+
+function positionSpellPotionDragGhost(x, y) {
+  spellPotionDragGhost.style.transform = `translate(${x - 36}px, ${y - 36}px)`;
+}
+
+function beginSpellPotionDrop(role, dest) {
+  if (!boardUsesPotions()) return false;
+
+  let move = util.dropOrigOf(role) + convertChessgroundXKeyToSquare(dest);
+  if (!/^(?:f|j)@/i.test(move)) return false;
+  move = move.charAt(0).toLowerCase() + move.substring(1);
+
+  const legalMoves = board.legalMoves();
+  const spellMoves = legalMoves
+    .trim()
+    .split(" ")
+    .filter((legalmove) => legalmove.startsWith(move + ","))
+    .map((legalmove) => {
+      const action = legalmove.substring(move.length + 1);
+      const squares = action.match(/^([a-z]+\d+)([a-z]+\d+)(.*)$/);
+      return squares
+        ? {
+            move: legalmove,
+            action,
+            from: squares[1],
+            to: squares[2],
+            suffix: squares[3],
+          }
+        : null;
+    })
+    .filter(Boolean);
+  if (spellMoves.length === 0) return false;
+
+  const dests = new Map();
+  for (const spellMove of spellMoves) {
+    const from = convertSquareToChessgroundXKey(spellMove.from);
+    const to = convertSquareToChessgroundXKey(spellMove.to);
+    if (!dests.has(from)) dests.set(from, []);
+    if (!dests.get(from).includes(to)) dests.get(from).push(to);
+  }
+
+  spellPotionPending = {
+    moves: spellMoves,
+    potion: move[0],
+    target: move.substring(2),
+  };
+  chessground.set({
+    movable: { free: false, color: getColor(board), dests: dests },
+    selectable: { enabled: clickClickMove.checked },
+  });
+  updateSpellPotionPresentation();
+  return true;
 }
 
 function updateInnerCoordinateColor(chessground) {
@@ -3724,6 +4036,7 @@ function getNotation(
 function onPositionSet() {
   const fen = textFen.value.trim();
   const WhiteSpaceMatcher = new RegExp("[ ]+", "");
+  cancelSpellPotionSelection();
 
   if (!fen || validateFEN(fen, false)) {
     if (fen) board.setFen(fen);
@@ -4118,6 +4431,7 @@ createFfishModule().then((loadedModule) => {
       );
       return;
     }
+    cancelSpellPotionSelection();
     const oldDimensions = getDimensions();
     initBoard(dropdownVariant.value);
     const newDimensions = getDimensions();
@@ -4180,9 +4494,11 @@ createFfishModule().then((loadedModule) => {
     chessground_mini.toggleOrientation();
     themedetector.SetOrientation(chessground.state.orientation);
     updateInnerCoordinateColor(chessground);
+    updateSpellPotionPresentation();
   };
 
   buttonUndo.onclick = function () {
+    cancelSpellPotionSelection();
     gametree.CutCurrentMove();
     gametree.ClearHistory();
     textFen.value = gametree.OriginalFEN;
@@ -4193,6 +4509,7 @@ createFfishModule().then((loadedModule) => {
 
   buttonMoveTreeClear.onclick = function () {
     if (!buttonMoveTreeClear.disabled) {
+      cancelSpellPotionSelection();
       gametree.ClearMoves();
       textFen.value = gametree.OriginalFEN;
       textMoves.value = "";
@@ -4308,6 +4625,7 @@ createFfishModule().then((loadedModule) => {
 
   buttonMoveTreeRedo.onclick = function () {
     if (!buttonMoveTreeRedo.disabled) {
+      cancelSpellPotionSelection();
       gametree.Redo();
       textFen.value = gametree.OriginalFEN;
       textMoves.value = gametree.GetMoveListOfMove(gametree.CurrentMove);
@@ -4562,6 +4880,7 @@ createFfishModule().then((loadedModule) => {
 
   buttonMoveTreeUndo.onclick = function () {
     if (!buttonMoveTreeUndo.disabled) {
+      cancelSpellPotionSelection();
       gametree.Undo();
       textFen.value = gametree.OriginalFEN;
       textMoves.value = gametree.GetMoveListOfMove(gametree.CurrentMove);
@@ -4922,6 +5241,7 @@ createFfishModule().then((loadedModule) => {
   };
 
   buttonReset.onclick = function () {
+    cancelSpellPotionSelection();
     textFen.value = "";
     textMoves.value = "";
     gametree.ClearMoves();
@@ -4932,6 +5252,7 @@ createFfishModule().then((loadedModule) => {
   };
 
   buttonRestart.onclick = function () {
+    cancelSpellPotionSelection();
     textMoves.value = "";
     gametree.ClearMoves();
     gametree.ClearHistory();
@@ -6074,56 +6395,7 @@ function UpdateVariantsPositionNameDropdown() {
 
 function getGameStatus(showresult) {
   let result = "null";
-  const isContradictoryStartingDraw = (() => {
-    if (!board) return false;
-    let legalMoveCount = 0;
-    try {
-      legalMoveCount = board
-        .legalMoves()
-        .split(" ")
-        .filter((move) => move !== "").length;
-    } catch (err) {
-      return false;
-    }
-    if (legalMoveCount === 0) return false;
-    const rawResult =
-      board.result() != "*"
-        ? board.result()
-        : board.result(true) != "*"
-          ? board.result(true)
-          : board.result(false);
-    if (rawResult != "1/2-1/2") return false;
-    const explicitFenText = (currentBoardFen.textContent || "").trim();
-    const currentFenText = explicitFenText || getFEN(false);
-    let startingFen = "";
-    try {
-      startingFen = checkboxFischerRandom.checked
-        ? ffish.startingFen(dropdownVariant.value + "960")
-        : ffish.startingFen(dropdownVariant.value);
-    } catch (err) {
-      startingFen = "";
-    }
-    if (textMoves.value.trim().length !== 0) return false;
-    if (typeof currentFenText != "string" || typeof startingFen != "string") {
-      return false;
-    }
-    const normalizedCurrentFen = currentFenText.trim();
-    const normalizedStartingFen = startingFen.trim();
-    if (explicitFenText.length > 0) {
-      return (
-        normalizedStartingFen.length > 0 &&
-        normalizedCurrentFen === normalizedStartingFen
-      );
-    }
-    return (
-      normalizedStartingFen.length === 0 ||
-      normalizedCurrentFen === normalizedStartingFen
-    );
-  })();
-  if (
-    !isContradictoryStartingDraw &&
-    (board.isGameOver() || board.isGameOver(true) || board.isGameOver(false))
-  ) {
+  if (board.isGameOver() || board.isGameOver(true) || board.isGameOver(false)) {
     const boardResult = getBoardResult(board);
     if (boardResult != "*") {
       gameResult.value = boardResult;
@@ -6253,7 +6525,7 @@ function getDests(board) {
       dests.get(from).push(to);
     }
 
-    const dropmatch = move.match(/([A-Z]+@)([a-z]+[0-9]+)/);
+    const dropmatch = move.match(/([A-Za-z]+@)([a-z]+[0-9]+)/);
     if (dropmatch) {
       const dropfrom = dropmatch[1];
       const dropto = convertSquareToChessgroundXKey(dropmatch[2]);
@@ -6398,6 +6670,7 @@ function applyCurrentBoardMove(ucimove) {
     return false;
   }
 
+  cancelSpellPotionSelection();
   afterMove(normalizedMove, capture, true);
   return true;
 }
@@ -6416,19 +6689,39 @@ function syncAfterForcedPassMove() {
 window.syncAfterForcedPassMove = syncAfterForcedPassMove;
 
 function isCapture(board, move) {
-  if (move == "0000" || move == "") {
+  if (typeof move !== "string" || move == "0000" || move == "") {
     return false;
   }
+  if (move.includes(",")) {
+    const parts = move.split(",");
+    // Potion casts put their target before the accompanying piece action.
+    // Ordinary gating notation puts the gate after the ordinary action.
+    if (/^[fj]@[a-z]+\d+$/i.test(parts[0])) {
+      return parts.length > 1 ? isCapture(board, parts[1]) : false;
+    }
+    return isCapture(board, parts[0]);
+  }
   if (move.includes("@")) {
+    // A standalone drop is not a capture in the variants supported here.
     return false;
   }
   const pieces = getPiecesAsArray(board);
-  const moveFromStr = move.charAt(0) + parseInt(move.substring(1));
-  const moveToStr =
-    move.charAt(moveFromStr.length) +
-    parseInt(move.substring(moveFromStr.length + 1));
+  const coordinateMove = move.match(/^([a-z]+\d+)([a-z]+\d+)/i);
+  if (!coordinateMove) return false;
+  const moveFromStr = coordinateMove[1].toLowerCase();
+  const moveToStr = coordinateMove[2].toLowerCase();
   const moveFrom = squareGetCoords(moveFromStr);
   const moveTo = squareGetCoords(moveToStr);
+  if (
+    !moveFrom ||
+    !moveTo ||
+    !pieces[moveFrom[0]] ||
+    !pieces[moveTo[0]] ||
+    !pieces[moveFrom[0]][moveFrom[1]] ||
+    !pieces[moveTo[0]][moveTo[1]]
+  ) {
+    return false;
+  }
   if (pieces[moveTo[0]][moveTo[1]] !== ".") return true; // En passant
 
   if (pieces[moveFrom[0]][moveFrom[1]].toLowerCase() === "p")
@@ -6454,9 +6747,65 @@ function afterChessgroundMove(orig, dest, metadata) {
 
   //console.log("move:", orig, dest, metadata);
 
-  const move =
-    convertChessgroundXKeyToSquare(orig) + convertChessgroundXKeyToSquare(dest);
+  const moveFrom = convertChessgroundXKeyToSquare(orig);
+  const moveTo = convertChessgroundXKeyToSquare(dest);
+  const move = moveFrom + moveTo;
   console.log(`${move}`);
+
+  if (spellPotionPending) {
+    const candidates = spellPotionPending.moves.filter(
+      (candidate) => candidate.from === moveFrom && candidate.to === moveTo,
+    );
+    if (candidates.length === 0) {
+      chessground.cancelMove();
+      return;
+    }
+    const suffixes = [
+      ...new Set(candidates.map((candidate) => candidate.suffix)),
+    ];
+    let suffix = "";
+    if (
+      quickPromotionPiece.value !== "" &&
+      !metadata.ctrlKey &&
+      suffixes.includes(quickPromotionPiece.value)
+    ) {
+      suffix = quickPromotionPiece.value;
+    } else if (suffixes.length === 1) {
+      suffix = suffixes[0];
+    } else {
+      suffix = prompt(
+        `There are multiple legal move suffixes: ${suffixes.map((value) => value || "=").join(", ")}. Enter = for no suffix.`,
+        "",
+      );
+      if (suffix == null) {
+        chessground.cancelMove();
+        return;
+      }
+      suffix = suffix === "=" ? "" : suffix;
+      if (!suffixes.includes(suffix)) {
+        alert("That suffix is not legal for this potion move.");
+        chessground.cancelMove();
+        return;
+      }
+    }
+    const selected = candidates.find(
+      (candidate) => candidate.suffix === suffix,
+    );
+    if (!selected) {
+      chessground.cancelMove();
+      return;
+    }
+    const capture = isCapture(board, selected.action);
+    if (board.push(selected.move)) {
+      spellPotionPending = null;
+      updateSpellPotionPresentation();
+      afterMove(selected.move, capture);
+    } else {
+      chessground.cancelMove();
+    }
+    return;
+  }
+
   const capture = isCapture(board, move);
 
   //UCI notation syntax (piece move): <begin_file><begin_rank><end_file><end_rank>[additional][,<gating_move>]
@@ -6670,7 +7019,13 @@ function afterChessgroundDrop(piece, dest, metadata) {
   //The program logic is the same as moving.
 
   const role = piece.role;
-  const move = util.dropOrigOf(role) + convertChessgroundXKeyToSquare(dest);
+  if (beginSpellPotionDrop(role, dest)) {
+    return;
+  }
+  let move = util.dropOrigOf(role) + convertChessgroundXKeyToSquare(dest);
+  if (boardUsesPotions() && /^(?:f|j)@/i.test(move)) {
+    move = move.charAt(0).toLowerCase() + move.substring(1);
+  }
   console.log(`${move}`);
 
   const legalmoves = board.legalMoves().trim().split(" ");
@@ -7498,6 +7853,7 @@ function updateChessground(showresult) {
   const boardfenval = board.fen();
   const boardfenvallist = boardfenval.split(" ");
   currentBoardFen.textContent = `Current Board FEN:  ${boardfenval}`;
+  updateSpellPotionPresentation();
 
   if (boardfenvallist.length == 7) {
     const checknums = boardfenvallist[4].split("+");
@@ -7608,8 +7964,24 @@ function updateChessground(showresult) {
         lastMove: undefined,
       });
     } else if (lastMove.includes("@")) {
-      lastMoveFrom = lastMove.match(/[A-Z]+@/g)[0];
-      lastMoveTo = convertSquareToChessgroundXKey(matchresult[0]);
+      const dropOrigin = lastMove.match(/[A-Za-z]+@/);
+      if (!dropOrigin) {
+        chessground.set({ lastMove: undefined });
+        buttonUndo.disabled = false;
+        chessground.setAutoShapes([]);
+        getGameStatus(showresult);
+        return;
+      }
+      const potionAction = lastMove
+        .slice(lastMove.indexOf(",") + 1)
+        .match(/^([a-z]+\d+)([a-z]+\d+)/);
+      if (potionAction) {
+        lastMoveFrom = convertSquareToChessgroundXKey(potionAction[1]);
+        lastMoveTo = convertSquareToChessgroundXKey(potionAction[2]);
+      } else {
+        lastMoveFrom = dropOrigin[0];
+        lastMoveTo = convertSquareToChessgroundXKey(matchresult[0]);
+      }
       if (
         dropdownVisualEffect.value == "<DISABLED>" ||
         isBoardSetup.checked ||

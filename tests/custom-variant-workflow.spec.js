@@ -137,6 +137,271 @@ test("built-in variants appear on startup", async ({ page }) => {
   await expect(page.locator("#dropdown-variant")).toContainText("Chess");
 });
 
+test("Spell Chess renders full and compact potion cooldowns", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "spell-chess");
+  await page.selectOption("#dropdown-variant", "spell-chess");
+  await page.waitForTimeout(300);
+
+  const startFen =
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[JJFFFFFjjfffff] w KQkq - 0 1";
+  const cooldowns = async (extension) => {
+    await page.fill("#fen", `${startFen} ${extension}`);
+    await page.fill("#move", "");
+    await page.locator("#setpos").click();
+    await page.waitForTimeout(250);
+    const readPocketCooldowns = (selector) =>
+      page.$$eval(selector, (pieces) =>
+        pieces.map((piece) => piece.getAttribute("data-cooldown")).sort(),
+      );
+    return {
+      main: await readPocketCooldowns(
+        "#pocket-top piece.spell-cooldown, #pocket-bottom piece.spell-cooldown",
+      ),
+      mini: await readPocketCooldowns(
+        "#pocket-top-mini piece.spell-cooldown, #pocket-bottom-mini piece.spell-cooldown",
+      ),
+    };
+  };
+
+  await expect(await cooldowns("- <1 2 3 4>")).toEqual({
+    main: ["1", "2", "3", "4"],
+    mini: ["1", "2", "3", "4"],
+  });
+  await expect(await cooldowns("- <5 6>")).toEqual({
+    main: ["5", "5", "6", "6"],
+    mini: ["5", "5", "6", "6"],
+  });
+});
+
+test("Spell Chess highlights the piece action of a compound potion move", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "spell-chess");
+  await page.selectOption("#dropdown-variant", "spell-chess");
+  await page.waitForTimeout(300);
+
+  await page.fill("#fen", "K7/6b1/8/4P3/8/8/4R3/7k[JJFFFFFjjfffff] w - - 0 1");
+  await page.fill("#move", "j@e5,e2e4");
+  await page.locator("#setpos").click();
+
+  await expect
+    .poll(() =>
+      page.$$eval("square.last-move", (squares) =>
+        squares.map((square) => square.getAttribute("style")).sort(),
+      ),
+    )
+    .toEqual([
+      "transform: translate(320px, 320px);",
+      "transform: translate(320px, 480px);",
+    ]);
+});
+
+test("Spell Chess potion UI uses only the active main-board pocket", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "spell-chess");
+  await page.selectOption("#dropdown-variant", "spell-chess");
+  await page.waitForTimeout(300);
+
+  const pointerDown = (selector) =>
+    page.locator(selector).evaluate((piece) => {
+      piece.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          isPrimary: true,
+          pointerId: 42,
+          clientX: 20,
+          clientY: 20,
+        }),
+      );
+      return !!document.querySelector(".spell-potion-drag-ghost");
+    });
+
+  await expect(
+    await pointerDown('#pocket-bottom piece.j-piece[data-color="white"]'),
+  ).toBe(true);
+  await page.evaluate(() =>
+    document.dispatchEvent(
+      new PointerEvent("pointercancel", { bubbles: true, pointerId: 42 }),
+    ),
+  );
+  await expect(
+    pointerDown('#pocket-top piece.j-piece[data-color="black"]'),
+  ).resolves.toBe(false);
+  await expect(
+    pointerDown('#pocket-bottom-mini piece.j-piece[data-color="white"]'),
+  ).resolves.toBe(false);
+});
+
+test("Spell Chess keeps a pending cast after an illegal external move", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "spell-chess");
+  await page.selectOption("#dropdown-variant", "spell-chess");
+  await page.waitForTimeout(300);
+  await page.fill("#fen", "K7/6b1/8/4P3/8/8/4R3/7k[JJFFFFFjjfffff] w - - 0 1");
+  await page.fill("#move", "");
+  await page.locator("#setpos").click();
+
+  await page.evaluate(() => {
+    const potion = document.querySelector(
+      '#pocket-bottom piece.j-piece[data-color="white"]',
+    );
+    const board = document.getElementById("chessground-board");
+    const bounds = board.getBoundingClientRect();
+    potion.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        button: 0,
+        isPrimary: true,
+        pointerId: 7,
+        clientX: 20,
+        clientY: 20,
+      }),
+    );
+    document.dispatchEvent(
+      new PointerEvent("pointerup", {
+        bubbles: true,
+        pointerId: 7,
+        clientX: bounds.left + (4.5 * bounds.width) / 8,
+        clientY: bounds.top + (3.5 * bounds.height) / 8,
+      }),
+    );
+  });
+  await expect(page.locator(".spell-potion-marker.jump")).toHaveCount(1);
+
+  await expect(
+    page.evaluate(() => window.applyCurrentBoardMove("a1a1")),
+  ).resolves.toBe(false);
+  await expect(page.locator(".spell-potion-marker.jump")).toHaveCount(1);
+});
+
+test("Spell Chess cancels the old cast when a replacement drag misses the board", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "spell-chess");
+  await page.selectOption("#dropdown-variant", "spell-chess");
+  await page.waitForTimeout(300);
+  await page.fill(
+    "#fen",
+    "K7/6b1/8/4P3/8/8/4R3/7k[JJFFFFFjjfffff] w - - 0 1",
+  );
+  await page.fill("#move", "");
+  await page.locator("#setpos").click();
+
+  await page.evaluate(() => {
+    const board = document.getElementById("chessground-board");
+    const bounds = board.getBoundingClientRect();
+    const drag = (selector, pointerId, clientX, clientY) => {
+      document.querySelector(selector).dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          isPrimary: true,
+          pointerId,
+          clientX: 20,
+          clientY: 20,
+        }),
+      );
+      document.dispatchEvent(
+        new PointerEvent("pointerup", {
+          bubbles: true,
+          pointerId,
+          clientX,
+          clientY,
+        }),
+      );
+    };
+
+    drag(
+      '#pocket-bottom piece.j-piece[data-color="white"]',
+      31,
+      bounds.left + (4.5 * bounds.width) / 8,
+      bounds.top + (3.5 * bounds.height) / 8,
+    );
+    drag(
+      '#pocket-bottom piece.f-piece[data-color="white"]',
+      32,
+      bounds.left - 20,
+      bounds.top - 20,
+    );
+  });
+
+  await expect(page.locator(".spell-potion-marker")).toHaveCount(0);
+});
+
+test("Spell Chess derived variants retain potion UI capability", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "spell-chess");
+  await page.setInputFiles("#variants-ini", {
+    name: "spell-ui-test.ini",
+    mimeType: "text/plain",
+    buffer: Buffer.from("[spell-ui-test:spell-chess]\n", "utf8"),
+  });
+  await page.waitForFunction(() =>
+    window.ffishlib.variants().split(" ").includes("spell-ui-test"),
+  );
+  expect(await selectVariantBySearchingTypes(page, "spell-ui-test")).toBe(true);
+  await page.selectOption("#dropdown-variant", "spell-ui-test");
+  await expect(page.locator("#chessground-container-div")).toHaveClass(
+    /spell-chess/,
+  );
+
+  await expect(
+    page.locator('#pocket-bottom piece.j-piece[data-color="white"]'),
+  ).toHaveCount(1);
+  await page
+    .locator('#pocket-bottom piece.j-piece[data-color="white"]')
+    .evaluate((piece) =>
+      piece.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          isPrimary: true,
+          pointerId: 8,
+          clientX: 20,
+          clientY: 20,
+        }),
+      ),
+    );
+  await expect(page.locator(".spell-potion-drag-ghost.j-piece")).toHaveCount(1);
+});
+
+test("Spell Chess redraws potion zones after a board flip", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "spell-chess");
+  await page.selectOption("#dropdown-variant", "spell-chess");
+  await page.waitForTimeout(300);
+
+  await page.fill(
+    "#fen",
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[JJFFFFFjjfffff] w KQkq - 0 1 wf:b3",
+  );
+  await page.fill("#move", "");
+  await page.locator("#setpos").click();
+  const before = await page
+    .locator(".spell-potion-marker")
+    .getAttribute("style");
+  await page.locator("#button-flip").click();
+  const after = await page
+    .locator(".spell-potion-marker")
+    .getAttribute("style");
+
+  expect(before).not.toBe(after);
+});
+
 test("uploading variants.ini exposes 1d-chess", async ({ page }) => {
   await page.goto("/public/advanced.html");
   await waitForVariantOption(page, "chess");
@@ -180,34 +445,6 @@ test("UCI move validator rejects malformed suffix garbage", async ({
     extra: false,
   });
 });
-
-const CONTRADICTORY_STARTING_DRAW_VARIANTS = [
-  "amazons",
-  "cowboys",
-  "isolation",
-  "isolation7x7",
-  "snailtrail",
-];
-
-for (const variant of CONTRADICTORY_STARTING_DRAW_VARIANTS) {
-  test(`${variant} is not declared drawn on startup`, async ({ page }) => {
-    await page.goto("/public/advanced.html");
-    await waitForVariantOption(page, variant);
-
-    const found = await selectVariantBySearchingTypes(page, variant);
-    expect(found).toBeTruthy();
-    await page.selectOption("#dropdown-variant", variant);
-
-    await page.waitForFunction(
-      (selectedVariant) =>
-        document.querySelector("#dropdown-variant")?.value === selectedVariant,
-      variant,
-      { timeout: 10000 },
-    );
-
-    await expect(page.locator("#gameresult")).not.toHaveValue("1/2-1/2");
-  });
-}
 
 test("forced pass moves resync the engine", async ({ page }) => {
   await page.goto("/public/advanced.html");

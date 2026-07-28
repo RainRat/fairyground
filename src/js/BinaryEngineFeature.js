@@ -518,10 +518,10 @@ function MakeMoveOnBoard(ucimove) {
   if (typeof window.normalizeCurrentBoardMove == "function") {
     ucimove = window.normalizeCurrentBoardMove(ucimove);
   }
-  if (
-    typeof window.applyCurrentBoardMove == "function" &&
-    window.applyCurrentBoardMove(ucimove)
-  ) {
+  if (typeof window.applyCurrentBoardMove == "function") {
+    if (!window.applyCurrentBoardMove(ucimove)) {
+      console.warn("Discarded stale or illegal engine move:", ucimove);
+    }
     return;
   }
   const moves = document.getElementById("move");
