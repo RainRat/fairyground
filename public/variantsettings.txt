@@ -341,6 +341,23 @@ hippolyta|Fairy Variants|Hippolyta|Fairy-chess variant named for its Amazonian o
 hp-minichess|Fairy Variants|HP Mini Chess|Small-board fairy-chess variant with compressed armies and sharp tactics.|
 ichess|Fairy Variants|Ichess|Experimental fairy-chess variant with custom movement and tactical rules.|
 jedi-chess|Fairy Variants|Jedi Chess|Star-wars-inspired fairy variant with force-themed custom movement.|
+khet1|Fairy Variants|Khet 1.0 (Classic)|Laser chess played on a 10×8 board with rotating pieces and laser-fired captures.|https://en.wikipedia.org/wiki/Khet_(game)
+khet2|Fairy Variants|Khet 2.0|Updated Khet laser chess with the Khet 2.0 piece set and orientation rules.|https://en.wikipedia.org/wiki/Khet_(game)
+khet1-imhotep|Fairy Variants|Khet 1 Imhotep|Khet 1.0 setup featuring the Imhotep starting arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet1-dynasty|Fairy Variants|Khet 1 Dynasty|Khet 1.0 setup featuring the Dynasty starting arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet1-classic2|Fairy Variants|Khet 1 Classic 2|Khet 1.0 alternate classic setup with the second classic arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet1-imhotep2|Fairy Variants|Khet 1 Imhotep 2|Khet 1.0 alternate Imhotep setup with the second arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet1-dynasty2|Fairy Variants|Khet 1 Dynasty 2|Khet 1.0 alternate Dynasty setup with the second arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet1-osiris|Fairy Variants|Khet 1 Osiris|Khet 1.0 setup featuring the Osiris arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet1-isis|Fairy Variants|Khet 1 Isis|Khet 1.0 setup featuring the Isis arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet2-imhotep|Fairy Variants|Khet 2 Imhotep|Khet 2.0 setup featuring the Imhotep starting arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet2-dynasty|Fairy Variants|Khet 2 Dynasty|Khet 2.0 setup featuring the Dynasty starting arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet2-classic2|Fairy Variants|Khet 2 Classic 2|Khet 2.0 alternate classic setup with the second classic arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet2-imhotep2|Fairy Variants|Khet 2 Imhotep 2|Khet 2.0 alternate Imhotep setup with the second arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet2-dynasty2|Fairy Variants|Khet 2 Dynasty 2|Khet 2.0 alternate Dynasty setup with the second arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet2-osiris|Fairy Variants|Khet 2 Osiris|Khet 2.0 setup featuring the Osiris arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+khet2-isis|Fairy Variants|Khet 2 Isis|Khet 2.0 setup featuring the Isis arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
+playlaser|Fairy Variants|Playlaser|Laser chess where players rotate and move pieces to fire a laser at the opposing king.|https://github.com/melgrove/laser
 kamikaze|Fairy Variants|Kamikaze|Self-destructive fairy-chess variant where captures or moves can sacrifice the mover.|
 kamikaze-giveaway|Fairy Variants|Kamikaze Giveaway|Loss-objective variant combining kamikaze self-destruction with giveaway rules.|
 ko-app-paw-na|Fairy Variants|Ko App Paw Na|Regional-style fairy variant with custom promotion and movement rules.|
