@@ -6395,56 +6395,7 @@ function UpdateVariantsPositionNameDropdown() {
 
 function getGameStatus(showresult) {
   let result = "null";
-  const isContradictoryStartingDraw = (() => {
-    if (!board) return false;
-    let legalMoveCount = 0;
-    try {
-      legalMoveCount = board
-        .legalMoves()
-        .split(" ")
-        .filter((move) => move !== "").length;
-    } catch (err) {
-      return false;
-    }
-    if (legalMoveCount === 0) return false;
-    const rawResult =
-      board.result() != "*"
-        ? board.result()
-        : board.result(true) != "*"
-          ? board.result(true)
-          : board.result(false);
-    if (rawResult != "1/2-1/2") return false;
-    const explicitFenText = (currentBoardFen.textContent || "").trim();
-    const currentFenText = explicitFenText || getFEN(false);
-    let startingFen = "";
-    try {
-      startingFen = checkboxFischerRandom.checked
-        ? ffish.startingFen(dropdownVariant.value + "960")
-        : ffish.startingFen(dropdownVariant.value);
-    } catch (err) {
-      startingFen = "";
-    }
-    if (textMoves.value.trim().length !== 0) return false;
-    if (typeof currentFenText != "string" || typeof startingFen != "string") {
-      return false;
-    }
-    const normalizedCurrentFen = currentFenText.trim();
-    const normalizedStartingFen = startingFen.trim();
-    if (explicitFenText.length > 0) {
-      return (
-        normalizedStartingFen.length > 0 &&
-        normalizedCurrentFen === normalizedStartingFen
-      );
-    }
-    return (
-      normalizedStartingFen.length === 0 ||
-      normalizedCurrentFen === normalizedStartingFen
-    );
-  })();
-  if (
-    !isContradictoryStartingDraw &&
-    (board.isGameOver() || board.isGameOver(true) || board.isGameOver(false))
-  ) {
+  if (board.isGameOver() || board.isGameOver(true) || board.isGameOver(false)) {
     const boardResult = getBoardResult(board);
     if (boardResult != "*") {
       gameResult.value = boardResult;

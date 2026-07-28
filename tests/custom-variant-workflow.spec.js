@@ -446,34 +446,6 @@ test("UCI move validator rejects malformed suffix garbage", async ({
   });
 });
 
-const CONTRADICTORY_STARTING_DRAW_VARIANTS = [
-  "amazons",
-  "cowboys",
-  "isolation",
-  "isolation7x7",
-  "snailtrail",
-];
-
-for (const variant of CONTRADICTORY_STARTING_DRAW_VARIANTS) {
-  test(`${variant} is not declared drawn on startup`, async ({ page }) => {
-    await page.goto("/public/advanced.html");
-    await waitForVariantOption(page, variant);
-
-    const found = await selectVariantBySearchingTypes(page, variant);
-    expect(found).toBeTruthy();
-    await page.selectOption("#dropdown-variant", variant);
-
-    await page.waitForFunction(
-      (selectedVariant) =>
-        document.querySelector("#dropdown-variant")?.value === selectedVariant,
-      variant,
-      { timeout: 10000 },
-    );
-
-    await expect(page.locator("#gameresult")).not.toHaveValue("1/2-1/2");
-  });
-}
-
 test("forced pass moves resync the engine", async ({ page }) => {
   await page.goto("/public/advanced.html");
   await uploadVariantsIni(page);
