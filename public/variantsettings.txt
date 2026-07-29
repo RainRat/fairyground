@@ -358,6 +358,8 @@ khet2-dynasty2|Fairy Variants|Khet 2 Dynasty 2|Khet 2.0 alternate Dynasty setup 
 khet2-osiris|Fairy Variants|Khet 2 Osiris|Khet 2.0 setup featuring the Osiris arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
 khet2-isis|Fairy Variants|Khet 2 Isis|Khet 2.0 setup featuring the Isis arrangement.|https://en.wikipedia.org/wiki/Khet_(game)
 playlaser|Fairy Variants|Playlaser|Laser chess where players rotate and move pieces to fire a laser at the opposing king.|https://github.com/melgrove/laser
+dos-laser-chess|Fairy Variants|DOS Laser Chess v2.0|Peter Venables' DOS Laser Chess v2.0, with rotating pieces and laser-fire captures on a 9×9 board.|
+dos-laser-chess-1994|Fairy Variants|DOS Laser Chess 3.1 (1994)|Laser Chess 3.1 for DOS, with alternate rotation, movement, promotion, and castling rules.|
 kamikaze|Fairy Variants|Kamikaze|Self-destructive fairy-chess variant where captures or moves can sacrifice the mover.|
 kamikaze-giveaway|Fairy Variants|Kamikaze Giveaway|Loss-objective variant combining kamikaze self-destruction with giveaway rules.|
 ko-app-paw-na|Fairy Variants|Ko App Paw Na|Regional-style fairy variant with custom promotion and movement rules.|
