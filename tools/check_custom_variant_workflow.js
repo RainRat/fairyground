@@ -37,6 +37,16 @@ const expectText = (rel, snippet, label) => {
   return true;
 };
 
+const expectAbsentText = (rel, snippet, label) => {
+  const text = read(rel);
+  if (text.includes(snippet)) {
+    fail(`${label} unexpectedly present in ${rel}`);
+    return false;
+  }
+  pass(`${label} absent from ${rel}`);
+  return true;
+};
+
 const expectVariantSettingsEntry = (variantId) => {
   const text = read("public/variantsettings.txt");
   const found = text
@@ -88,6 +98,16 @@ expectText(
   "src/html/advanced.html",
   "syncDerivedPositionState",
   "advanced derived-state sync",
+);
+expectAbsentText(
+  "src/js/main.js",
+  "startHasWhiteKing",
+  "king-presence adjudication fallback",
+);
+expectAbsentText(
+  "src/js/main.js",
+  "getForcedExternalCustomVariantResult",
+  "external custom-variant result override",
 );
 
 ["1d-chess", "battleotk", "ardri", "linesofaction", "kings-valley"].forEach(

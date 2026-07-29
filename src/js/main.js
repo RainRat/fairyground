@@ -4129,10 +4129,6 @@ function getBoardResult(board) {
   if (result == "*" || board !== window.board) {
     return result;
   }
-  const forcedResult = getForcedExternalCustomVariantResult();
-  if (forcedResult != null) {
-    return forcedResult;
-  }
   return result;
 }
 
@@ -4165,7 +4161,6 @@ createFfishModule().then((loadedModule) => {
   ffish = loadedModule;
   console.log("ffish.js initialized!");
   window.ffishlib = loadedModule; //Used in dev tools for debugging purposes and transfer to <script>
-  window.loadedVariantsIniNames = new Set();
   document.dispatchEvent(
     new CustomEvent("ffish:ready", {
       detail: {
@@ -4358,9 +4353,6 @@ createFfishModule().then((loadedModule) => {
       const result = await loadVariantConfigResiliently(ini);
       ffish = result.module;
       window.ffishlib = result.module;
-      window.loadedVariantsIniNames = new Set(
-        result.loaded.map((name) => name.split(":")[0].trim()).filter(Boolean),
-      );
       console.log(
         "variants.ini loaded into browser helper:",
         result.loaded.length,
@@ -6442,63 +6434,6 @@ function getGameStatus(showresult) {
     }
   }
   return result;
-}
-
-function getForcedExternalCustomVariantResult() {
-  const current = checkboxFischerRandom.checked
-    ? dropdownVariant.value + "960"
-    : dropdownVariant.value;
-  const isCustomVariantFromIni =
-    window.loadedVariantsIniNames instanceof Set &&
-    window.loadedVariantsIniNames.has(current);
-  const fge = window.fairyground?.BinaryEngineFeature;
-  const hasLoadedExternalPlayingEngine =
-    !!fge &&
-    [fge.first_engine, fge.second_engine]
-      .filter((engine) => engine && engine.IsLoaded && engine.IsUsing)
-      .some((engine) =>
-        Array.isArray(engine.Options)
-          ? engine.Options.some(
-              (option) =>
-                /^VariantPath$/i.test(option.name) &&
-                option.current &&
-                option.current != "<empty>",
-            )
-          : false,
-      );
-  if (!isCustomVariantFromIni || !hasLoadedExternalPlayingEngine) {
-    return null;
-  }
-  const fenText = currentBoardFen.textContent || getFEN(false);
-  const boardFen = typeof fenText == "string" ? fenText.split(" ")[0] : "";
-  let startFen = "";
-  try {
-    if (window.ffishlib && typeof window.ffishlib.startingFen == "function") {
-      startFen = window.ffishlib.startingFen(current) || "";
-    }
-  } catch (err) {
-    startFen = "";
-  }
-  const startBoardFen =
-    typeof startFen == "string" ? startFen.split(" ")[0] : "";
-  const startHasWhiteKing = startBoardFen.includes("K");
-  const startHasBlackKing = startBoardFen.includes("k");
-  const hasWhiteKing = boardFen.includes("K");
-  const hasBlackKing = boardFen.includes("k");
-  const browserDraw =
-    (board.isGameOver() && board.result() == "1/2-1/2") ||
-    (board.isGameOver(true) && board.result(true) == "1/2-1/2") ||
-    (board.isGameOver(false) && board.result(false) == "1/2-1/2");
-  if (!browserDraw) {
-    return null;
-  }
-  if (startHasWhiteKing && !hasWhiteKing) {
-    return "0-1";
-  }
-  if (startHasBlackKing && !hasBlackKing) {
-    return "1-0";
-  }
-  return null;
 }
 
 function resetTimer() {
