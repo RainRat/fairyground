@@ -1055,6 +1055,47 @@
     display: flex;
   }
 
+  #chessground-container-div {
+    position: relative;
+  }
+
+  #edge-insert-controls {
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 20;
+  }
+
+  #edge-insert-controls:not(.active) {
+    display: none;
+  }
+
+  .edge-insert-arrow {
+    align-items: center;
+    appearance: none;
+    background: #ffffffaa;
+    border: 2px solid #333;
+    border-radius: 8px;
+    color: #111;
+    cursor: pointer;
+    display: flex;
+    font-size: clamp(20px, 3vw, 34px);
+    justify-content: center;
+    opacity: 0.9;
+    padding: 0;
+    pointer-events: auto;
+    position: absolute;
+    text-shadow: 0 1px 2px #fff;
+  }
+
+  .edge-insert-arrow:hover,
+  .edge-insert-arrow:focus-visible {
+    background: #ffffffe6;
+    border-color: #06c;
+    opacity: 1;
+    outline: 3px solid #06c8;
+  }
+
   /* Spell Chess potions are reserve pieces, but should read as spells rather
      than ordinary fairy pieces in every selected piece theme. */
   #chessground-container-div.spell-chess .cg-wrap piece.f-piece,

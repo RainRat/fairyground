@@ -418,6 +418,7 @@ let ffish = null;
 let board = null;
 let chessground = null;
 let chessground_mini = null;
+let edgeInsertControlsEl = null;
 const PgnDivThrottleDurationMs = 250;
 let PgnDivThrottleStartTime = 0;
 let PgnDivCalledDuringThrottle = false;
@@ -6926,6 +6927,151 @@ function afterChessgroundMove(orig, dest, metadata) {
   afterMove(finalmove, capture);
 }
 
+function edgeInsertFileIndex(file) {
+  let index = 0;
+  for (const char of file) index = index * 26 + char.charCodeAt(0) - 96;
+  return index - 1;
+}
+
+function edgeInsertBaseHasPiece(square) {
+  if (!board || typeof board.fen !== "function") return false;
+  const dimensions = getDimensions();
+  const [file, rankText] = square.match(/^([a-z]+)(\d+)$/).slice(1);
+  const fileIndex = edgeInsertFileIndex(file);
+  const rank = Number(rankText) - 1;
+  if (
+    fileIndex < 0 ||
+    fileIndex >= dimensions.width ||
+    rank < 0 ||
+    rank >= dimensions.height
+  ) {
+    return false;
+  }
+  const boardFen = board.fen().split(/\s+/)[0].split("[")[0];
+  const row = boardFen.split("/")[dimensions.height - 1 - rank] || "";
+  let column = 0;
+  for (let index = 0; index < row.length && column <= fileIndex; index++) {
+    const char = row[index];
+    if (/\d/.test(char)) {
+      let end = index;
+      while (end + 1 < row.length && /\d/.test(row[end + 1])) end++;
+      column += Number(row.slice(index, end + 1));
+      index = end;
+    } else if (char === "(") {
+      const end = row.indexOf(")", index + 1);
+      if (end >= 0) index = end;
+    } else if (column++ === fileIndex) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function edgeInsertMoves() {
+  if (!board || typeof board.legalMoves !== "function") return [];
+  return board
+    .legalMoves()
+    .trim()
+    .split(/\s+/)
+    .filter((candidate) => /^[^@]+@[a-z]+\d+,[a-z]+\d+$/.test(candidate));
+}
+
+function updateEdgeInsertControls() {
+  if (!chessgroundContainerEl || !chessground || !board) return;
+  if (!edgeInsertControlsEl) {
+    edgeInsertControlsEl = document.createElement("div");
+    edgeInsertControlsEl.id = "edge-insert-controls";
+    chessgroundContainerEl.appendChild(edgeInsertControlsEl);
+  }
+  edgeInsertControlsEl.replaceChildren();
+
+  const moves = edgeInsertMoves();
+  edgeInsertControlsEl.classList.toggle("active", moves.length > 0);
+  if (moves.length === 0) return;
+
+  const boardElement = chessgroundContainerEl.querySelector("cg-board");
+  if (!boardElement) return;
+  const boardRect = boardElement.getBoundingClientRect();
+  const containerRect = chessgroundContainerEl.getBoundingClientRect();
+  const dimensions = getDimensions();
+  const squareWidth = boardRect.width / dimensions.width;
+  const squareHeight = boardRect.height / dimensions.height;
+  const blackOrientation = chessground.state.orientation === "black";
+  const grouped = new Map();
+
+  for (const move of moves) {
+    const match = move.match(/@([a-z]+\d+),([a-z]+\d+)$/);
+    if (!match) continue;
+    const group = grouped.get(match[1]) || [];
+    group.push({ move, base: match[1], direction: match[2] });
+    grouped.set(match[1], group);
+  }
+
+  for (const group of grouped.values()) {
+    for (const [groupIndex, entry] of group.entries()) {
+      const baseMatch = entry.base.match(/^([a-z]+)(\d+)$/);
+      const directionMatch = entry.direction.match(/^([a-z]+)(\d+)$/);
+      if (!baseMatch || !directionMatch) continue;
+      const baseFile = edgeInsertFileIndex(baseMatch[1]);
+      const baseRank = Number(baseMatch[2]) - 1;
+      const directionFile = edgeInsertFileIndex(directionMatch[1]);
+      const directionRank = Number(directionMatch[2]) - 1;
+      const visualFile = blackOrientation
+        ? dimensions.width - 1 - baseFile
+        : baseFile;
+      const visualRank = blackOrientation
+        ? baseRank
+        : dimensions.height - 1 - baseRank;
+      const visualDirectionFile = blackOrientation
+        ? dimensions.width - 1 - directionFile
+        : directionFile;
+      const visualDirectionRank = blackOrientation
+        ? directionRank
+        : dimensions.height - 1 - directionRank;
+      const deltaFile = visualDirectionFile - visualFile;
+      const deltaRank = visualDirectionRank - visualRank;
+      const arrow = document.createElement("button");
+      arrow.type = "button";
+      arrow.className = "edge-insert-arrow";
+      arrow.dataset.move = entry.move;
+      arrow.title = `Insert ${entry.move}`;
+      arrow.setAttribute("aria-label", arrow.title);
+      arrow.textContent =
+        deltaFile > 0 ? "→" : deltaFile < 0 ? "←" : deltaRank > 0 ? "↓" : "↑";
+      arrow.style.left = `${boardRect.left - containerRect.left + visualFile * squareWidth}px`;
+      arrow.style.top = `${boardRect.top - containerRect.top + visualRank * squareHeight}px`;
+      arrow.style.width = `${squareWidth}px`;
+      arrow.style.height = `${squareHeight}px`;
+      if (group.length > 1) {
+        arrow.style.width = `${squareWidth / group.length}px`;
+        arrow.style.left = `${boardRect.left - containerRect.left + (visualFile + groupIndex / group.length) * squareWidth}px`;
+      }
+      edgeInsertControlsEl.appendChild(arrow);
+    }
+  }
+}
+
+function finishEdgeInsertDrop(event) {
+  const target =
+    event.target instanceof Element
+      ? event.target.closest(".edge-insert-arrow")
+      : null;
+  const drag = chessground?.state?.draggable?.current;
+  if (!target || !drag || drag.orig !== "a0" || !drag.fromPocket) return;
+
+  const move = target.dataset.move;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  chessground.state.draggable.current = undefined;
+  chessground.state.boardState.pieces.delete("a0");
+  chessground.unselect();
+  chessground.state.dom.redraw();
+  if (move && board.push(move)) afterMove(move, false);
+}
+
+document.addEventListener("mouseup", finishEdgeInsertDrop, true);
+document.addEventListener("touchend", finishEdgeInsertDrop, true);
+
 function afterChessgroundDrop(piece, dest, metadata) {
   let promotion = quickPromotionPiece.value;
   let i = 0;
@@ -6966,6 +7112,54 @@ function afterChessgroundDrop(piece, dest, metadata) {
   const legalmoves = board.legalMoves().trim().split(" ");
   let possiblepromotions = [];
   console.log(`${legalmoves}`);
+
+  // Edge-insert variants encode the insertion square and push direction as
+  // `A@a1,a2`. A pocket drop onto the edge only supplies the first square, so
+  // resolve the matching full move here instead of treating the direction as
+  // a promotion or ordinary gating suffix.
+  const insertionMoves = legalmoves.filter((candidate) => {
+    const [base, direction] = candidate.split(",");
+    return (
+      base === move &&
+      typeof direction === "string" &&
+      /^[a-z]+\d+$/.test(direction)
+    );
+  });
+  if (insertionMoves.length > 0) {
+    let selectedInsertion = insertionMoves[0];
+    if (
+      insertionMoves.length > 1 &&
+      edgeInsertBaseHasPiece(move.split("@")[1])
+    ) {
+      const choices = insertionMoves.map(
+        (candidate) => candidate.split(",")[1],
+      );
+      const choice = prompt(
+        `Choose the insertion direction: ${choices.join(", ")}`,
+        choices[0],
+      );
+      if (choice == null) {
+        afterMove(null, false);
+        return;
+      }
+      selectedInsertion = insertionMoves.find(
+        (candidate) =>
+          candidate === choice || candidate.split(",")[1] === choice,
+      );
+      if (!selectedInsertion) {
+        alert(`Bad insertion direction: ${choice}.`);
+        afterMove(null, false);
+        return;
+      }
+    }
+    if (!board.push(selectedInsertion)) {
+      chessground.cancelMove();
+      return;
+    }
+    afterMove(selectedInsertion, false);
+    return;
+  }
+
   for (i = 0; i < legalmoves.length; i++) {
     if (legalmoves[i].trim().length == 0) {
       continue;
@@ -7966,4 +8160,5 @@ function updateChessground(showresult) {
   chessground.setAutoShapes([]);
 
   getGameStatus(showresult);
+  updateEdgeInsertControls();
 }

@@ -95,6 +95,26 @@ expectText(
   "browser helper variants.ini entrypoint",
 );
 expectText(
+  "src/js/main.js",
+  "const insertionMoves = legalmoves.filter",
+  "edge-insert drop handling",
+);
+expectText(
+  "src/js/main.js",
+  "function updateEdgeInsertControls",
+  "edge-insert arrow controls",
+);
+expectText(
+  "src/js/BinaryEngineFeature.js",
+  "const isEdgeInsert",
+  "engine edge-insert move validation",
+);
+expectText(
+  "src/html/advanced.html",
+  ".edge-insert-arrow",
+  "edge-insert arrow styling",
+);
+expectText(
   "src/html/advanced.html",
   "syncDerivedPositionState",
   "advanced derived-state sync",
@@ -110,7 +130,14 @@ expectAbsentText(
   "external custom-variant result override",
 );
 
-["1d-chess", "battleotk", "ardri", "linesofaction", "kings-valley"].forEach(
+[
+  "1d-chess",
+  "battleotk",
+  "ardri",
+  "linesofaction",
+  "kings-valley",
+  "pousse",
+].forEach(
   expectVariantSettingsEntry,
 );
 

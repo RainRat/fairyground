@@ -687,9 +687,10 @@ function IsUCIMoveSyntaxCorrect(ucimove) {
   let move = ucimove;
   if (ucimove.includes(",")) {
     let index = ucimove.indexOf(",");
-    let gatingmove = move.slice(index + 1);
+    let suffix = move.slice(index + 1);
     move = ucimove.slice(0, index);
-    if (!/^([a-z]{1}[0-9]+){2}$/.test(gatingmove)) {
+    const isEdgeInsert = move.includes("@") && /^[a-z]+[0-9]+$/.test(suffix);
+    if (!isEdgeInsert && !/^([a-z]{1}[0-9]+){2}$/.test(suffix)) {
       return false;
     }
   }

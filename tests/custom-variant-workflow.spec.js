@@ -432,6 +432,7 @@ test("UCI move validator rejects malformed suffix garbage", async ({
       plain: fge.IsUCIMoveSyntaxCorrect("e2e4"),
       promotion: fge.IsUCIMoveSyntaxCorrect("e7e8q"),
       drop: fge.IsUCIMoveSyntaxCorrect("N@a1"),
+      edgeInsert: fge.IsUCIMoveSyntaxCorrect("A@a1,a2"),
       garbage: fge.IsUCIMoveSyntaxCorrect("e2e4xyz123"),
       extra: fge.IsUCIMoveSyntaxCorrect("a10b11++++"),
     };
@@ -441,6 +442,7 @@ test("UCI move validator rejects malformed suffix garbage", async ({
     plain: true,
     promotion: true,
     drop: true,
+    edgeInsert: true,
     garbage: false,
     extra: false,
   });
@@ -718,6 +720,77 @@ test("external engine can play 1d-chess after inline VariantPath apply", async (
   );
 });
 
+test("external engine accepts a Pousse edge insertion", async ({ page }) => {
+  test.setTimeout(60000);
+  await page.setViewportSize({ width: 1280, height: 1400 });
+
+  await page.goto("/public/advanced.html");
+  await waitForVariantOption(page, "chess");
+  await connectExternalEngineBackend(page);
+  await loadBlackExternalEngine(page);
+  await uploadVariantsIni(page);
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      window.ffishlib.variants().split(" ").includes("pousse"),
+    { timeout: 30000 },
+  );
+
+  await page.fill("#variantpath-inline", FSF_X_VARIANTS);
+  await page.getByRole("button", { name: "Apply VariantPath" }).click();
+  await expect(page.locator("#variantpath-status")).toContainText(
+    "Applied VariantPath to 1 loaded external engine(s)",
+  );
+  await page.waitForFunction(
+    () =>
+      window.fairyground.BinaryEngineFeature.second_engine.Variants.includes(
+        "pousse",
+      ),
+    { timeout: 15000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "pousse");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "pousse");
+  const variantSupported = await page.evaluate(() =>
+    window.fairyground.BinaryEngineFeature.second_engine.SetVariant(
+      "pousse",
+      false,
+    ),
+  );
+  expect(variantSupported).toBeTruthy();
+
+  await page.fill("#blackmovetime", "100");
+  await page.check("#playblack");
+  const source = await page
+    .locator("#pocket-bottom piece.a-piece")
+    .boundingBox();
+  const target = await page
+    .locator('.edge-insert-arrow[data-move="A@a1,a2"]')
+    .boundingBox();
+  await page.mouse.move(
+    source.x + source.width / 2,
+    source.y + source.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    target.x + target.width / 2,
+    target.y + target.height / 2,
+    {
+      steps: 10,
+    },
+  );
+  await page.mouse.up();
+
+  await page.waitForFunction(
+    () =>
+      document.getElementById("move").value.trim().split(/\s+/).filter(Boolean)
+        .length >= 2,
+    { timeout: 15000 },
+  );
+  await expect(page.locator("#move")).toHaveValue(/A@a1,a2\s+A@/);
+});
+
 test("Y accepts a pocket drop on a visible hex", async ({ page }) => {
   await page.goto("/public/advanced.html");
   await uploadVariantsIni(page);
@@ -764,6 +837,146 @@ test("Y accepts a pocket drop on a visible hex", async ({ page }) => {
   await expect(page.locator("#move")).toHaveValue("P@j10");
   await expect(page.locator("#label-stm")).toHaveText("white");
   await expect(page.locator("#gameresult")).toHaveValue("");
+});
+
+test("Pousse completes an edge insertion from a pocket drop", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 1400 });
+  const dialogs = [];
+  page.on("dialog", async (dialog) => {
+    dialogs.push(dialog.message());
+    await dialog.dismiss();
+  });
+  await page.goto("/public/advanced.html");
+  await uploadVariantsIni(page);
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      window.ffishlib.variants().split(" ").includes("pousse"),
+    { timeout: 30000 },
+  );
+
+  const found = await selectVariantBySearchingTypes(page, "pousse");
+  expect(found).toBeTruthy();
+  await page.selectOption("#dropdown-variant", "pousse");
+
+  const geometry = await page.evaluate(() => {
+    const board = document.querySelector("#chessground-container-div cg-board");
+    const pocketPiece = document.querySelector("#pocket-bottom piece.a-piece");
+    const bounds = board.getBoundingClientRect();
+    const pieceBounds = pocketPiece.getBoundingClientRect();
+
+    return {
+      source: {
+        x: pieceBounds.x + pieceBounds.width / 2,
+        y: pieceBounds.y + pieceBounds.height / 2,
+      },
+      target: {
+        x: bounds.x + (0.25 / 6) * bounds.width,
+        y: bounds.y + (5.5 / 6) * bounds.height,
+      },
+    };
+  });
+
+  await page.mouse.move(geometry.source.x, geometry.source.y);
+  await page.mouse.down();
+  await page.mouse.move(geometry.target.x, geometry.target.y, { steps: 10 });
+  await page.mouse.up();
+
+  await expect(page.locator("#move")).toHaveValue("A@a1,a2");
+  await expect(page.locator("#label-stm")).toHaveText("black");
+  await expect(page.locator("#gameresult")).toHaveValue("");
+
+  const dropFromPocket = async (pocket, move) => {
+    const source = await page
+      .locator(`#pocket-${pocket} piece.a-piece`)
+      .boundingBox();
+    const target = await page
+      .locator(`.edge-insert-arrow[data-move="${move}"]`)
+      .boundingBox();
+    await page.mouse.move(
+      source.x + source.width / 2,
+      source.y + source.height / 2,
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      target.x + target.width / 2,
+      target.y + target.height / 2,
+      {
+        steps: 10,
+      },
+    );
+    await page.mouse.up();
+  };
+
+  await dropFromPocket("top", "A@f6,f5");
+  await dropFromPocket("bottom", "A@a1,a2");
+  await expect(page.locator("#move")).toHaveValue("A@a1,a2 A@f6,f5 A@a1,a2");
+  expect(dialogs).toEqual([]);
+});
+
+test("Pousse rejects repeated layouts and has a full reserve", async ({
+  page,
+}) => {
+  await page.goto("/public/advanced.html");
+  await uploadVariantsIni(page);
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      window.ffishlib.variants().split(" ").includes("pousse"),
+    { timeout: 30000 },
+  );
+
+  const result = await page.evaluate(() => {
+    const board = new window.ffishlib.Board("pousse");
+    const moves =
+      "A@c1,c2 A@c6,c5 A@c1,c2 A@c6,c5 A@c1,c2 A@c6,c5 A@c1,c2 A@c6,c5 A@c1,c2 A@c6,c5 A@c1,c2 A@c6,c5 A@c1,c2".split(
+        " ",
+      );
+    return {
+      pushes: moves.map((move) => board.push(move)),
+      whiteReserve: new window.ffishlib.Board("pousse").pocket(true, "a"),
+      blackReserve: new window.ffishlib.Board("pousse").pocket(false, "a"),
+    };
+  });
+
+  expect(result.pushes).toContain(false);
+  expect(result.whiteReserve).toHaveLength(30);
+  expect(result.blackReserve).toHaveLength(30);
+});
+
+test("Crossway exposes only its custom stone", async ({ page }) => {
+  await page.goto("/public/advanced.html");
+  await uploadVariantsIni(page);
+  await page.waitForFunction(
+    () =>
+      !!window.ffishlib &&
+      window.ffishlib.variants().split(" ").includes("crossway"),
+    { timeout: 30000 },
+  );
+  await page.selectOption("#dropdown-variant", "crossway");
+
+  const result = await page.evaluate(() => {
+    const board = new window.ffishlib.Board("crossway");
+    return {
+      pocketRoles: [
+        ...document.querySelectorAll("#pocket-top piece, #pocket-bottom piece"),
+      ].map((piece) => piece.dataset.role),
+      dropTypes: [
+        ...new Set(
+          board
+            .legalMoves()
+            .split(" ")
+            .filter((move) => move.includes("@"))
+            .map((move) => move[0]),
+        ),
+      ],
+    };
+  });
+
+  expect(result.pocketRoles).toEqual(["s-piece"]);
+  expect(result.dropTypes).toEqual(["S"]);
 });
 
 test("Y does not adjudicate an interior three-stone line as a win", async ({
